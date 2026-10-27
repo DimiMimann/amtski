@@ -18,6 +18,9 @@ summarizes them as required by section 5(a) of the license.
   the `node:zlib` decoders before authentication.
 - **Duplication pre-commit check** (`scripts/check-duplication.sh`): only clones that
   involve staged files fail the hook; Windows path separators are normalized.
+- **Provider label** (`ayunis-core-frontend`): the `stackit` provider slot is shown as
+  "MiMann", hosted in Eichstetten am Kaiserstuhl, Germany, because this instance
+  uses it for a locally hosted model.
 - **Repository housekeeping**: removed the upstream GitHub Actions workflows and
   Dependabot config (they target upstream infrastructure), the upstream Infisical
   workspace file, and committed Python build artifacts; shell scripts are checked
