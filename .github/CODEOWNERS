@@ -1,5 +1,0 @@
-# Mandatory PR review applies only to data model changes. Everything else merges
-# without a review request, so no broad path ownership is declared here.
-
-**/*.entity.ts @devbydaniel @sirolad @pavellnk
-**/*.record.ts @devbydaniel @sirolad @pavellnk

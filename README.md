@@ -1,5 +1,9 @@
 # Ayunis Core
 
+**AmtsKI** is a modified version of Ayunis Core, licensed under AGPL-3.0. It is
+not an official Ayunis release. See [MODIFICATIONS.md](MODIFICATIONS.md) for the
+changes.
+
 > An open-source AI gateway for public administrations
 
 Ayunis Core is a comprehensive AI platform that enables intelligent conversations with customizable skills, knowledge bases, and extensible tool integration. Built with ❤️ for public administrations.
