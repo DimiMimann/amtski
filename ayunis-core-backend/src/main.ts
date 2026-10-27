@@ -85,11 +85,14 @@ class Bootstrap {
    * the 512k artifact content cap unreachable — body-parser fails before any
    * validation runs (AYC-553). Nest's own parsers are disabled so the JSON
    * one can classify malformed client bodies for AppSignal (AYC-1226).
+   * Compressed bodies are refused (415): the parsers run before auth, so
+   * inflating would expose node:zlib decoders such as Brotli
+   * (CVE-2026-111497) to unauthenticated input.
    */
   private static configureBodyParsers(app: NestExpressApplication) {
     const limit = process.env.HTTP_BODY_LIMIT ?? this.DEFAULT_BODY_LIMIT;
-    app.use(jsonBodyParser({ limit }));
-    app.useBodyParser('urlencoded', { limit, extended: true });
+    app.use(jsonBodyParser({ limit, inflate: false }));
+    app.useBodyParser('urlencoded', { limit, extended: true, inflate: false });
   }
 
   private static configureApp(app: NestExpressApplication) {

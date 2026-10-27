@@ -34,8 +34,12 @@ describe('body parsers configured as in main.ts', () => {
       logger: false,
       bodyParser: false,
     });
-    app.use(jsonBodyParser({ limit: '5mb' }));
-    app.useBodyParser('urlencoded', { limit: '5mb', extended: true });
+    app.use(jsonBodyParser({ limit: '5mb', inflate: false }));
+    app.useBodyParser('urlencoded', {
+      limit: '5mb',
+      extended: true,
+      inflate: false,
+    });
     // The express instrumentation records whatever the parser layer passes
     // to next(); this captures that same object before Nest handles it.
     const captureParserError: ErrorRequestHandler = (
@@ -104,6 +108,24 @@ describe('body parsers configured as in main.ts', () => {
     expect(await response.json()).toEqual({ hello: 'world' });
     expect(parserErrors).toHaveLength(0);
   });
+
+  // CVE-2026-111497: node:zlib's Brotli decoder is remotely exploitable, and
+  // these parsers run before any auth guard.
+  it.each(['br', 'gzip', 'deflate'])(
+    'rejects a %s-encoded body without decompressing it',
+    async (encoding) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Encoding': encoding,
+        },
+        body: '{}',
+      });
+
+      expect(response.status).toBe(415);
+    },
+  );
 
   // Incident #723 (AYC-1226): an external PowerShell client sent an extra
   // closing brace after the JSON object.
