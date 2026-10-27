@@ -100,13 +100,19 @@ else
 fi
 
 # Extract clones where at least one side is a staged file, excluding known pairs
+# jscpd reports `\` separators on Windows; the staged and known paths use `/`.
+# The `as $pair` body is parenthesized: unbracketed, it binds the whole
+# preceding boolean and the select passes every clone.
 MATCHES=$(jq --argjson staged "$JQ_PATTERNS" --argjson known "$KNOWN_PAIRS" '
-  [.duplicates[] | select(
+  [.duplicates[]
+   | .firstFile.name |= gsub("\\\\"; "/")
+   | .secondFile.name |= gsub("\\\\"; "/")
+   | select(
     ((.firstFile.name as $f | $staged | any(. == $f)) or
      (.secondFile.name as $s | $staged | any(. == $s)))
     and
-    ([.firstFile.name, .secondFile.name] | sort) as $pair |
-    ($known | any(. == $pair)) | not
+    (([.firstFile.name, .secondFile.name] | sort) as $pair |
+     $known | any(. == $pair) | not)
   )]
 ' "$REPORT_FILE")
 
