@@ -20,7 +20,7 @@ const PROVIDER_LABELS: Record<ModelProvider, string> = {
   ayunis: 'Ayunis',
   azure: 'MS Azure',
   gemini: 'Gemini',
-  stackit: 'Stackit',
+  stackit: 'MiMann', // lokaler Endpunkt (via STACKIT_BASE_URL -> Eichstetten am Kaiserstuhl), als eigener Anbieter dargestellt
   scaleway: 'Scaleway',
 };
 
