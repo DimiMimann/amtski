@@ -49,10 +49,12 @@ describe('ToolAssemblyService — image generation tool assembly', () => {
     alwaysOnTemplatesExecute?: jest.Mock;
     activeKnowledgeBasesExecute?: jest.Mock;
     marketplaceEnabled?: boolean;
+    codeExecutionEnabled?: boolean;
   }) {
     const configFlags: Record<string, boolean> = {
       'internetSearch.isAvailable':
         overrides.internetSearchIsAvailable ?? false,
+      'tools.codeExecution.enabled': overrides.codeExecutionEnabled ?? true,
     };
     const configService = {
       get: jest.fn().mockImplementation((key: string) => configFlags[key]),
@@ -355,6 +357,24 @@ describe('ToolAssemblyService — image generation tool assembly', () => {
     );
     expect(codeExecutionCall).toBeDefined();
     expect(codeExecutionCall[0].context).toEqual([readySource]);
+  });
+
+  it('omits the code execution tool when code execution is disabled', async () => {
+    const { service, assembleToolsUseCase } = await buildService({
+      contextServiceGet: jest.fn().mockReturnValue(mockOrgId),
+      codeExecutionEnabled: false,
+    });
+
+    const tools = await service.assembleTools(createMockThread(), new Map());
+
+    const toolTypes = tools.map((t: { type: ToolType }) => t.type);
+    expect(toolTypes).not.toContain(ToolType.CODE_EXECUTION);
+    expect(toolTypes).toContain(ToolType.CREATE_FILE);
+    expect(
+      assembleToolsUseCase.execute.mock.calls.some(
+        ([cmd]: [{ type: ToolType }]) => cmd.type === ToolType.CODE_EXECUTION,
+      ),
+    ).toBe(false);
   });
 
   it('advertises workspace skills without injecting their instructions or resources', async () => {

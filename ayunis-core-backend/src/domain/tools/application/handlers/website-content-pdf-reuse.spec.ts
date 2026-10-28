@@ -75,6 +75,7 @@ describe('Website PDF pagination', () => {
       module.get(RetrieveUrlUseCase),
       {
         sourceGetText: { maxLines: 200, maxChars: 5000 },
+        codeExecution: { enabled: true },
       },
     );
     const read = (startLine: number) =>

@@ -24,7 +24,10 @@ describe('WebsiteContentToolHandler', () => {
     retrieveUrl = jest.fn();
     handler = new WebsiteContentToolHandler(
       { execute: retrieveUrl } as unknown as RetrieveUrlUseCase,
-      { sourceGetText: { maxLines: 200, maxChars: 5000 } },
+      {
+        sourceGetText: { maxLines: 200, maxChars: 5000 },
+        codeExecution: { enabled: true },
+      },
     );
   });
 

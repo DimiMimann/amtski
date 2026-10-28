@@ -6,6 +6,7 @@ import { SourceStatus } from 'src/domain/sources/domain/source-status.enum';
 import { SourceCreator } from 'src/domain/sources/domain/source-creator.enum';
 import { FileType, TextType } from 'src/domain/sources/domain/source-type.enum';
 import type { Source } from 'src/domain/sources/domain/source.entity';
+import { CodeExecutionTool } from 'src/domain/tools/domain/tools/code-execution-tool.entity';
 import { randomUUID } from 'crypto';
 
 describe('SystemPromptBuilderService', () => {
@@ -473,7 +474,7 @@ describe('SystemPromptBuilderService', () => {
       });
 
       const result = service.build({
-        tools: [],
+        tools: [new CodeExecutionTool([])],
         currentTime: new Date('2026-01-15T10:00:00Z'),
         sources: [csvSource],
       });
@@ -481,7 +482,28 @@ describe('SystemPromptBuilderService', () => {
       expect(result).not.toContain('<available_files>');
       expect(result).toContain('<available_data_sources>');
       expect(result).toContain('name="sales-data.csv"');
-      expect(result).toContain('code_execution');
+      expect(result).toContain('using the code_execution tool');
+    });
+
+    it('should say DataSources cannot be analyzed when code_execution is not offered', () => {
+      const csvSource = new CSVDataSource({
+        id: randomUUID(),
+        name: 'sales-data.csv',
+        data: { headers: ['month', 'revenue'], rows: [['Jan', '1000']] },
+        status: SourceStatus.READY,
+        createdBy: SourceCreator.USER,
+      });
+
+      const result = service.build({
+        tools: [],
+        currentTime: new Date('2026-01-15T10:00:00Z'),
+        sources: [csvSource],
+      });
+
+      expect(result).toContain('<available_data_sources>');
+      expect(result).toContain('name="sales-data.csv"');
+      expect(result).toContain('cannot be analyzed in this conversation');
+      expect(result).not.toContain('code_execution');
     });
 
     it('should separate TextSources into available_files and DataSources into available_data_sources', () => {
@@ -498,7 +520,7 @@ describe('SystemPromptBuilderService', () => {
       });
 
       const result = service.build({
-        tools: [],
+        tools: [new CodeExecutionTool([])],
         currentTime: new Date('2026-01-15T10:00:00Z'),
         sources: [textSource, csvSource],
       });

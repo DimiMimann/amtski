@@ -291,8 +291,9 @@ export class ToolAssemblyService {
   ): Promise<Tool[]> {
     const tools: Tool[] = [];
 
-    // Code execution tool is always available
-    tools.push(await this.assembleCodeExecutionTool(thread));
+    if (this.configService.get<boolean>('tools.codeExecution.enabled')) {
+      tools.push(await this.assembleCodeExecutionTool(thread));
+    }
 
     // Always-available tools
     tools.push(

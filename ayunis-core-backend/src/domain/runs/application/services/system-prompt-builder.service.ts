@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Tool } from 'src/domain/tools/domain/tool.entity';
+import { ToolType } from 'src/domain/tools/domain/value-objects/tool-type.enum';
 import { Source } from 'src/domain/sources/domain/source.entity';
 import { SourceCreator } from 'src/domain/sources/domain/source-creator.enum';
 import { SourceStatus } from 'src/domain/sources/domain/source-status.enum';
@@ -49,7 +50,10 @@ export class SystemPromptBuilderService {
       this.buildBehaviorInstructions(),
       this.buildToolUsageSection(tools),
       this.buildSkillsSection(skills),
-      this.buildFilesSection(sources),
+      this.buildFilesSection(
+        sources,
+        tools.some((tool) => tool.type === ToolType.CODE_EXECUTION),
+      ),
       this.buildKnowledgeBasesSection(knowledgeBases),
       workspaceInstructions
         ? this.buildWorkspaceInstructionsSection(workspaceInstructions)
@@ -316,7 +320,7 @@ ${skillEntries}
     return `<workspace_instructions>\nThese instructions apply to every chat in this workspace.\n\n${escapeXml(instruction)}\n</workspace_instructions>`;
   }
 
-  private buildFilesSection(sources: Source[]): string {
+  private buildFilesSection(sources: Source[], canAnalyze: boolean): string {
     if (sources.length === 0) {
       return '';
     }
@@ -343,7 +347,7 @@ ${skillEntries}
     }
 
     if (readyDataSources.length > 0) {
-      sections.push(this.buildDataSourcesSection(readyDataSources));
+      sections.push(this.buildDataSourcesSection(readyDataSources, canAnalyze));
     }
 
     if (processingSources.length > 0) {
@@ -403,14 +407,20 @@ ${systemFiles.map(formatFile).join('\n')}
     return section;
   }
 
-  private buildDataSourcesSection(sources: Source[]): string {
+  private buildDataSourcesSection(
+    sources: Source[],
+    canAnalyze: boolean,
+  ): string {
     const formatFile = (source: Source): string => {
       const type = this.getFileTypeLabel(source);
       return `<file id="${source.id}" name="${escapeXml(source.name)}" type="${type}" />`;
     };
+    const usage = canAnalyze
+      ? 'The following data sources are available for analysis using the code_execution tool.'
+      : 'The following data sources cannot be analyzed in this conversation. If the user asks about them, explain that their contents are not accessible here.';
 
     return `<available_data_sources>
-The following data sources are available for analysis using the code_execution tool.
+${usage}
 These are structured data files (e.g., CSV) and cannot be searched with source_query.
 
 ${sources.map(formatFile).join('\n')}
