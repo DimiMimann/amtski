@@ -25,3 +25,19 @@ summarizes them as required by section 5(a) of the license.
   Dependabot config (they target upstream infrastructure), the upstream Infisical
   workspace file, and committed Python build artifacts; shell scripts are checked
   out with LF line endings.
+
+## 2026-10-28
+
+- **Configurable chat endpoint** (`ayunis-core-backend/src/config/models.config.ts`):
+  `STACKIT_BASE_URL` overrides the STACKIT cloud URL, so the `stackit` provider
+  slot can serve a self-hosted OpenAI-compatible model.
+- **Code execution can be disabled** (`CODE_EXECUTION_ENABLED=false`): the
+  `code_execution` tool is then not offered to models, and the system prompt says
+  attached tables cannot be analyzed instead of pointing to that tool. It stays
+  enabled by default.
+- **Source code link** (`VITE_SOURCE_CODE_URL`): when set, the login pages and the
+  user menu link to the source code of the running version (AGPL-3.0 §13).
+- **Container health check** probes `/api/health` instead of `/health`, which the
+  SPA fallback always answered, and allows five minutes for the first boot.
+- **Easypanel deployment**: `compose.easypanel.yml`, an environment generator and a
+  setup guide in `deploy/easypanel/`.

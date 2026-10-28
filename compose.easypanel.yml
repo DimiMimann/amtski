@@ -1,0 +1,212 @@
+# AmtsKI on Easypanel (Compose service). Setup guide: deploy/easypanel/README.md
+#
+# Every ${VAR} comes from the Compose service's Environment tab in Easypanel;
+# generate the values with `node deploy/easypanel/generate-env.mjs`. Services
+# carry an `amtski-` prefix because Easypanel may join them to a network shared
+# with other projects, where bare names like `postgres` could collide.
+# No host ports: Easypanel's domain routes amtski.mimann.net to amtski-app:3000.
+
+services:
+  amtski-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    depends_on:
+      amtski-postgres:
+        condition: service_healthy
+      amtski-redis:
+        condition: service_healthy
+      amtski-minio:
+        condition: service_healthy
+      amtski-gotenberg:
+        condition: service_healthy
+      # PII masking is optional at runtime; a slow model load must not block boot.
+      amtski-anonymize:
+        condition: service_started
+    environment:
+      PORT: "3000"
+      APP_ENVIRONMENT: self-hosted
+      # Below the 4G container limit so Chromium and buffers fit beside the heap.
+      NODE_OPTIONS: --max-old-space-size=2560
+      FRONTEND_BASEURL: ${PUBLIC_URL:?}
+      BACKEND_BASEURL: ${PUBLIC_URL:?}
+      CORS_ALLOWED_ORIGINS: ${PUBLIC_URL:?}
+      COOKIE_DOMAIN: ${PUBLIC_HOST:?}
+      COOKIE_SECURE: "true"
+      # External reverse proxy + Easypanel's Traefik.
+      TRUST_PROXY: ${TRUST_PROXY:-2}
+      # Must exceed Traefik's 90s upstream idle timeout.
+      HTTP_KEEP_ALIVE_TIMEOUT_MS: "95000"
+      DISABLE_REGISTRATION: ${DISABLE_REGISTRATION:-false}
+      VITE_SOURCE_CODE_URL: ${SOURCE_CODE_URL:?}
+
+      JWT_SECRET: ${JWT_SECRET:?}
+      COOKIE_SECRET: ${COOKIE_SECRET:?}
+      MCP_ENCRYPTION_KEY: ${MCP_ENCRYPTION_KEY:?}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?}
+      AYUNIS_METRICS_USER: ${METRICS_USER:?}
+      AYUNIS_METRICS_PASSWORD: ${METRICS_PASSWORD:?}
+
+      POSTGRES_HOST: amtski-postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      REDIS_HOST: amtski-redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+      MINIO_ENDPOINT: amtski-minio
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?}
+      MINIO_BUCKET: ayunis
+      GOTENBERG_URL: http://amtski-gotenberg:3000
+      ANONYMIZE_SERVICE_URL: http://amtski-anonymize:8000
+      # Requires Docker-socket access on the host; not deployed here.
+      CODE_EXECUTION_ENABLED: "false"
+
+      # Local OpenAI-compatible chat model in the "stackit" provider slot.
+      STACKIT_BASE_URL: ${LLM_BASE_URL:?}
+      STACKIT_TOKEN: ${LLM_API_KEY:?}
+      # Local embedding server. The OpenAI SDK reads OPENAI_BASE_URL, so every
+      # provider="openai" model goes there, never to api.openai.com.
+      OPENAI_BASE_URL: ${EMBEDDINGS_BASE_URL:?}
+      OPENAI_API_KEY: ${EMBEDDINGS_API_KEY:-local}
+
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "3"
+        reservations:
+          memory: 1G
+
+  amtski-postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2"
+        reservations:
+          memory: 512M
+
+  amtski-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+    command:
+      [
+        "sh",
+        "-c",
+        'exec redis-server --requirepass "$${REDIS_PASSWORD}" --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes',
+      ]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'redis-cli --no-auth-warning -a "$${REDIS_PASSWORD}" ping | grep -q PONG',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+  amtski-minio:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z@sha256:69b55a1c1c5dc285ce04db96689f5b2102317fc77a50680a1874ca6efd1c87f9
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?}
+    command: server /data
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+
+  amtski-gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    environment:
+      API_TIMEOUT: 10m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2"
+        reservations:
+          memory: 512M
+
+  amtski-anonymize:
+    # Unmodified upstream image of the same release as this fork's base.
+    image: ghcr.io/ayunis-core/ayunis-core-anonymize:v2.57.0
+    restart: unless-stopped
+    environment:
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      MAX_CONCURRENT_ANALYSES: "2"
+      GLINER_BATCH_SIZE: "16"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2"
+        reservations:
+          memory: 1500M
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
