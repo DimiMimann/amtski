@@ -113,6 +113,12 @@ describe('validateEnv', () => {
       ).toThrow(/INTERNET_SEARCH_PROVIDER/);
     });
 
+    it('accepts searxng as internet search provider', () => {
+      expect(() =>
+        validateEnv(baseEnv({ INTERNET_SEARCH_PROVIDER: 'searxng' })),
+      ).not.toThrow();
+    });
+
     it('accepts a leftover retired feature flag', () => {
       expect(() =>
         validateEnv(baseEnv({ FEATURE_SKILLS_ENABLED: 'false' })),

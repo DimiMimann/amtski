@@ -2,7 +2,8 @@
 
 [`compose.easypanel.yml`](../../compose.easypanel.yml) runs the whole stack as
 one Easypanel **Compose** service: app, PostgreSQL with pgvector, Redis, MinIO,
-Gotenberg and the PII anonymization service. Easypanel builds the app image
+Gotenberg, the PII anonymization service and SearXNG for web search. Easypanel
+builds the app image
 from this repository. Code execution is disabled because it needs Docker-socket
 access on the host.
 
@@ -61,6 +62,10 @@ client_max_body_size 50m;
 4. Set `DISABLE_REGISTRATION=true` and redeploy.
 
 ## Configuration notes
+
+- Web search runs through the bundled SearXNG (`deploy/easypanel/searxng/settings.yml`).
+  It hides who searches, but the query text reaches the listed search engines,
+  so users must not search with personal data.
 
 - `LLM_BASE_URL` points the *MiMann* (`stackit`) provider at your server. `EMBEDDINGS_BASE_URL`
   becomes `OPENAI_BASE_URL`, so every *OpenAI* model talks to that server and

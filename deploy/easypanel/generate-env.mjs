@@ -26,6 +26,7 @@ MCP_ENCRYPTION_KEY=${secret()}
 MFA_ENCRYPTION_KEY=${secret()}
 METRICS_USER=metrics
 METRICS_PASSWORD=${secret(24)}
+SEARXNG_SECRET=${secret()}
 
 POSTGRES_USER=ayunis
 POSTGRES_PASSWORD=${secret(24)}

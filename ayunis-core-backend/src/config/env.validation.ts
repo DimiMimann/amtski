@@ -185,7 +185,9 @@ export class EnvironmentVariables {
   URL_RETRIEVER_MAX_DOWNLOAD_BYTES?: number;
 
   // Internet search
-  @IsOptional() @IsIn(['brave', 'staan']) INTERNET_SEARCH_PROVIDER?: string;
+  @IsOptional()
+  @IsIn(['brave', 'staan', 'searxng'])
+  INTERNET_SEARCH_PROVIDER?: string;
   @IsOptional() @IsIn(['de-de', 'en-us', 'fr-fr']) STAAN_SEARCH_MARKET?: string;
 
   // Retention

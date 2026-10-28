@@ -41,3 +41,6 @@ summarizes them as required by section 5(a) of the license.
   SPA fallback always answered, and allows five minutes for the first boot.
 - **Easypanel deployment**: `compose.easypanel.yml`, an environment generator and a
   setup guide in `deploy/easypanel/`.
+- **SearXNG web search** (`INTERNET_SEARCH_PROVIDER=searxng`, `SEARXNG_URL`): a
+  provider for a self-hosted SearXNG instance next to Brave and Staan, bundled in
+  the Easypanel stack.

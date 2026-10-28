@@ -25,6 +25,8 @@ services:
       # PII masking is optional at runtime; a slow model load must not block boot.
       amtski-anonymize:
         condition: service_started
+      amtski-searxng:
+        condition: service_started
     environment:
       PORT: "3000"
       APP_ENVIRONMENT: self-hosted
@@ -67,6 +69,8 @@ services:
       ANONYMIZE_SERVICE_URL: http://amtski-anonymize:8000
       # Requires Docker-socket access on the host; not deployed here.
       CODE_EXECUTION_ENABLED: "false"
+      INTERNET_SEARCH_PROVIDER: searxng
+      SEARXNG_URL: http://amtski-searxng:8080
 
       # Local OpenAI-compatible chat model in the "stackit" provider slot.
       STACKIT_BASE_URL: ${LLM_BASE_URL:?}
@@ -205,6 +209,19 @@ services:
           cpus: "2"
         reservations:
           memory: 1500M
+
+  amtski-searxng:
+    image: searxng/searxng:2026.10.13-22c64b8d3
+    restart: unless-stopped
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?}
+    volumes:
+      - ./deploy/easypanel/searxng/settings.yml:/etc/searxng/settings.yml:ro
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1"
 
 volumes:
   postgres-data:

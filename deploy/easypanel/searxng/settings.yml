@@ -1,0 +1,30 @@
+# SearXNG for AmtsKI's internet_search tool. Only amtski-app reaches it (no
+# domain, no published port). server.secret_key comes from SEARXNG_SECRET.
+# SearXNG hides who searches; the query text itself still goes to the engines
+# below, so users must not search with personal data.
+use_default_settings:
+  engines:
+    keep_only:
+      - duckduckgo
+      - brave
+      - mojeek
+      - qwant
+      - startpage
+      - wikipedia
+
+general:
+  instance_name: AmtsKI
+
+server:
+  # Internal-only instance: the bot limiter would throttle the app itself.
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+search:
+  safe_search: 1
+  default_lang: de
+  # The app talks to /search?format=json.
+  formats:
+    - html
+    - json
