@@ -96,9 +96,11 @@ ENV NODE_OPTIONS="--max-old-space-size=6144"
 # PORT is set via environment variable at runtime, defaults to 3000 in app code
 # Port exposure is handled by docker-compose port mapping
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+# /health is answered by the SPA fallback; only /api/health proves Nest is up.
+# The long start period covers a first boot, which runs all migrations before
+# listen().
+HEALTHCHECK --interval=30s --timeout=5s --start-period=300s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))" || exit 1
 
 # Start the application (cwd /app → dist/frontend served, ./uploads = /app/uploads)
 CMD ["node", "--require", "./appsignal.cjs", "dist/src/main.js"]
