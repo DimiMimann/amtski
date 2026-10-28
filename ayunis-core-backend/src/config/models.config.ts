@@ -10,6 +10,14 @@ const mistralConfig = () => ({
     process.env.MISTRAL_TRANSCRIPTION_MODEL?.trim() || 'voxtral-mini-latest',
 });
 
+const stackitConfig = () => ({
+  apiKey: process.env.STACKIT_TOKEN,
+  // Overridable so a self-hosted OpenAI-compatible server can use this slot.
+  baseURL:
+    process.env.STACKIT_BASE_URL?.trim() ||
+    'https://api.openai-compat.model-serving.eu01.onstackit.cloud/v1',
+});
+
 export const modelsConfig = registerAs('models', () => ({
   mistral: mistralConfig(),
   openai: {
@@ -50,10 +58,7 @@ export const modelsConfig = registerAs('models', () => ({
   gemini: {
     apiKey: process.env.GEMINI_API_KEY,
   },
-  stackit: {
-    apiKey: process.env.STACKIT_TOKEN,
-    baseURL: 'https://api.openai-compat.model-serving.eu01.onstackit.cloud/v1',
-  },
+  stackit: stackitConfig(),
   scaleway: {
     apiKey: process.env.SCALEWAY_API_KEY,
     baseURL: 'https://api.scaleway.ai/v1',
