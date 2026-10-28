@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MistralFileRetrieverHandler } from './infrastructure/adapters/mistral-file-retriever.handler';
+import { DoclingFileRetrieverHandler } from './infrastructure/adapters/docling-file-retriever.handler';
 import { FileRetrieverRegistry } from './application/file-retriever-handler.registry';
 import { RetrieveFileContentUseCase } from './application/use-cases/retrieve-file-content/retrieve-file-content.use-case';
 import { PreflightCheckUseCase } from './application/use-cases/preflight-check/preflight-check.use-case';
@@ -23,6 +24,7 @@ import { TranscriptionsModule } from 'src/domain/transcriptions/transcriptions.m
   providers: [
     FileRetrieverRegistry,
     MistralFileRetrieverHandler,
+    DoclingFileRetrieverHandler,
     NpmPdfParseFileRetrieverHandler,
     GotenbergConverterService,
     RetrieveFileContentUseCase,
@@ -37,6 +39,7 @@ import { TranscriptionsModule } from 'src/domain/transcriptions/transcriptions.m
       useFactory: (
         npmPdfParseHandler: NpmPdfParseFileRetrieverHandler,
         mistralHandler: MistralFileRetrieverHandler,
+        doclingHandler: DoclingFileRetrieverHandler,
       ) => {
         const registry = new FileRetrieverRegistry();
         registry.registerHandler(
@@ -44,9 +47,14 @@ import { TranscriptionsModule } from 'src/domain/transcriptions/transcriptions.m
           npmPdfParseHandler,
         );
         registry.registerHandler(FileRetrieverType.MISTRAL, mistralHandler);
+        registry.registerHandler(FileRetrieverType.DOCLING, doclingHandler);
         return registry;
       },
-      inject: [NpmPdfParseFileRetrieverHandler, MistralFileRetrieverHandler],
+      inject: [
+        NpmPdfParseFileRetrieverHandler,
+        MistralFileRetrieverHandler,
+        DoclingFileRetrieverHandler,
+      ],
     },
   ],
   exports: [

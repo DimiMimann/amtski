@@ -246,7 +246,7 @@ export class RetrieveFileContentUseCase {
   }
 
   /**
-   * PDF: Prefer Mistral OCR, fallback to pdf-parse.
+   * PDF: Prefer OCR (Docling, then Mistral), fallback to pdf-parse.
    */
   private async processPdf(
     fileData: Buffer,
@@ -256,7 +256,8 @@ export class RetrieveFileContentUseCase {
     pageLimit?: number,
   ): Promise<FileRetrieverResult> {
     const file = new File(fileData, fileName, mimeType);
-    if (!this.config.mistral.apiKey) {
+    const ocrType = this.ocrRetrieverType();
+    if (!ocrType) {
       if (!allowLocalParsing) {
         throw new FileRetrieverProviderNotAvailableError('Mistral OCR');
       }
@@ -266,7 +267,7 @@ export class RetrieveFileContentUseCase {
     }
 
     try {
-      return await this.processWithMistral(file, pageLimit);
+      return await this.processWithOcr(ocrType, file, pageLimit);
     } catch (error) {
       if (!(error instanceof UnprocessableDocumentError)) throw error;
       if (!allowLocalParsing) throw error;
@@ -274,13 +275,18 @@ export class RetrieveFileContentUseCase {
     }
   }
 
-  private processWithMistral(
+  private ocrRetrieverType(): FileRetrieverType | undefined {
+    if (this.config.docling.url) return FileRetrieverType.DOCLING;
+    if (this.config.mistral.apiKey) return FileRetrieverType.MISTRAL;
+    return undefined;
+  }
+
+  private processWithOcr(
+    ocrType: FileRetrieverType,
     file: File,
     pageLimit?: number,
   ): Promise<FileRetrieverResult> {
-    const handler = this.fileRetrieverRegistry.getHandler(
-      FileRetrieverType.MISTRAL,
-    );
+    const handler = this.fileRetrieverRegistry.getHandler(ocrType);
     if (pageLimit === undefined) return handler.processFile(file);
     return handler.processFile(file, { pageLimit });
   }

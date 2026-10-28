@@ -74,6 +74,9 @@ client_max_body_size 50m;
 - `WHISPER_BASE_URL` sends voice input to your transcription server
   (`/v1/audio/transcriptions`, model `WHISPER_MODEL`, default
   `openai/whisper-large-v3`). Left empty, voice input falls back to Mistral.
+- `DOCLING_URL` sends PDFs, and Office files after their PDF conversion, to
+  your docling-serve for OCR, so scanned documents become searchable. Left
+  empty, only PDFs with a text layer yield text.
 - `TRUST_PROXY=2` assumes one reverse proxy in front of Easypanel's Traefik.
   Add that proxy's address under Easypanel's Trusted Proxies so client IPs
   survive both hops.

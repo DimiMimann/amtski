@@ -40,6 +40,7 @@ LLM_API_KEY=<API key of the chat server>
 EMBEDDINGS_BASE_URL=<http://host:port/v1 of the OpenAI-compatible embedding server>
 EMBEDDINGS_API_KEY=local
 WHISPER_BASE_URL=<http://host:port/v1 of the OpenAI-compatible transcription server>
+DOCLING_URL=<http://host:port of docling-serve>
 
 SMTP_HOST=
 SMTP_PORT=

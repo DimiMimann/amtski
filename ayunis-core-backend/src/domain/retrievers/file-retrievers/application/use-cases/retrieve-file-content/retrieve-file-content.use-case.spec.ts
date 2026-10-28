@@ -39,6 +39,9 @@ describe('RetrieveFileContentUseCase', () => {
     mistral: {
       apiKey: 'test-mistral-key',
     },
+    docling: {
+      url: undefined,
+    },
   };
 
   beforeAll(async () => {

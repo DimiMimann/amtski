@@ -19,7 +19,11 @@ describe('Office document page limit after conversion', () => {
   let useCase: RetrieveFileContentUseCase;
   const converter = { convertToPdf: jest.fn() };
   const handler = { processFile: jest.fn() };
-  const config = { processingMaxPdfPages: 2, mistral: { apiKey: 'ocr-key' } };
+  const config = {
+    processingMaxPdfPages: 2,
+    mistral: { apiKey: 'ocr-key' },
+    docling: { url: undefined },
+  };
   const extracted = new FileRetrieverResult([
     new FileRetrieverPage('Municipal budget report', 1),
   ]);

@@ -47,3 +47,6 @@ summarizes them as required by section 5(a) of the license.
 - **Whisper transcription** (`WHISPER_BASE_URL`, `WHISPER_MODEL`, `WHISPER_API_KEY`):
   voice input goes to a self-hosted OpenAI-compatible transcription server
   instead of Mistral when the base URL is set.
+- **Docling OCR** (`DOCLING_URL`): PDFs, including converted Office files, are
+  read by a self-hosted docling-serve through its async API, preferred over
+  Mistral OCR; unreadable documents still fall back to local PDF parsing.
