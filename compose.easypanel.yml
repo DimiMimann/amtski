@@ -79,6 +79,10 @@ services:
       # provider="openai" model goes there, never to api.openai.com.
       OPENAI_BASE_URL: ${EMBEDDINGS_BASE_URL:?}
       OPENAI_API_KEY: ${EMBEDDINGS_API_KEY:-local}
+      # Local OpenAI-compatible speech-to-text server for voice input.
+      WHISPER_BASE_URL: ${WHISPER_BASE_URL:-}
+      WHISPER_MODEL: ${WHISPER_MODEL:-}
+      WHISPER_API_KEY: ${WHISPER_API_KEY:-}
 
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}

@@ -10,6 +10,13 @@ const mistralConfig = () => ({
     process.env.MISTRAL_TRANSCRIPTION_MODEL?.trim() || 'voxtral-mini-latest',
 });
 
+// A self-hosted OpenAI-compatible transcription server; replaces Mistral when set.
+const whisperConfig = () => ({
+  baseURL: process.env.WHISPER_BASE_URL?.trim() || undefined,
+  model: process.env.WHISPER_MODEL?.trim() || 'openai/whisper-large-v3',
+  apiKey: process.env.WHISPER_API_KEY?.trim() || undefined,
+});
+
 const stackitConfig = () => ({
   apiKey: process.env.STACKIT_TOKEN,
   // Overridable so a self-hosted OpenAI-compatible server can use this slot.
@@ -20,6 +27,7 @@ const stackitConfig = () => ({
 
 export const modelsConfig = registerAs('models', () => ({
   mistral: mistralConfig(),
+  whisper: whisperConfig(),
   openai: {
     apiKey: process.env.OPENAI_API_KEY,
   },

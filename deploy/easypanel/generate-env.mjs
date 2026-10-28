@@ -39,6 +39,7 @@ LLM_BASE_URL=<http://host:port/v1 of the OpenAI-compatible chat server>
 LLM_API_KEY=<API key of the chat server>
 EMBEDDINGS_BASE_URL=<http://host:port/v1 of the OpenAI-compatible embedding server>
 EMBEDDINGS_API_KEY=local
+WHISPER_BASE_URL=<http://host:port/v1 of the OpenAI-compatible transcription server>
 
 SMTP_HOST=
 SMTP_PORT=

@@ -71,6 +71,9 @@ client_max_body_size 50m;
   becomes `OPENAI_BASE_URL`, so every *OpenAI* model talks to that server and
   never to api.openai.com. Do not add other cloud provider keys if data must
   stay on your servers.
+- `WHISPER_BASE_URL` sends voice input to your transcription server
+  (`/v1/audio/transcriptions`, model `WHISPER_MODEL`, default
+  `openai/whisper-large-v3`). Left empty, voice input falls back to Mistral.
 - `TRUST_PROXY=2` assumes one reverse proxy in front of Easypanel's Traefik.
   Add that proxy's address under Easypanel's Trusted Proxies so client IPs
   survive both hops.

@@ -44,3 +44,6 @@ summarizes them as required by section 5(a) of the license.
 - **SearXNG web search** (`INTERNET_SEARCH_PROVIDER=searxng`, `SEARXNG_URL`): a
   provider for a self-hosted SearXNG instance next to Brave and Staan, bundled in
   the Easypanel stack.
+- **Whisper transcription** (`WHISPER_BASE_URL`, `WHISPER_MODEL`, `WHISPER_API_KEY`):
+  voice input goes to a self-hosted OpenAI-compatible transcription server
+  instead of Mistral when the base URL is set.
