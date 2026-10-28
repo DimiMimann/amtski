@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from '@ayunis/ui/components/card';
 
+import config from '@/shared/config';
+
 // Static
 import brandFullLight from '@/shared/assets/brand/brand-full-light.svg';
 import { OnboardingShowcase } from './OnboardingShowcase';
@@ -83,6 +85,15 @@ export default function OnboardingLayout({
             >
               {t('onboardingLayout.privacy')}
             </a>
+            {config.sourceCodeUrl && (
+              <a
+                href={config.sourceCodeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('onboardingLayout.sourceCode')}
+              </a>
+            )}
           </div>
         </div>
       </div>

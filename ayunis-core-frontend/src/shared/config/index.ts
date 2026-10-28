@@ -25,6 +25,8 @@ const config = {
     openPanelApiUrl: runtimeEnv('VITE_OPENPANEL_API_URL'),
     openPanelClientId: runtimeEnv('VITE_OPENPANEL_CLIENT_ID'),
   },
+  // AGPL-3.0 §13: modified deployments must offer users their source code.
+  sourceCodeUrl: runtimeEnv('VITE_SOURCE_CODE_URL')?.trim() || undefined,
   map: {
     tileUrl:
       runtimeEnv('VITE_MAP_BASEMAP_TILE_URL')?.trim() ||

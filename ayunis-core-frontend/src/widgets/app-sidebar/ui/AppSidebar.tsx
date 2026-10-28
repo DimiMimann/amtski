@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Store,
   GraduationCap,
+  Code,
 } from 'lucide-react';
 
 import {
@@ -252,6 +253,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <Settings2 />
                       {t('sidebar.superAdminSettings')}
                     </Link>
+                  </DropdownMenuItem>
+                )}
+                {config.sourceCodeUrl && (
+                  <DropdownMenuItem asChild>
+                    <a
+                      href={config.sourceCodeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Code />
+                      {t('sidebar.sourceCode')}
+                    </a>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={logout}>

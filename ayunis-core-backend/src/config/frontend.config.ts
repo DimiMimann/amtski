@@ -24,6 +24,7 @@ export const FRONTEND_RUNTIME_KEYS = [
   'VITE_OPENPANEL_CLIENT_ID',
   'VITE_MAP_BASEMAP_TILE_URL',
   'VITE_MAP_BASEMAP_ATTRIBUTION',
+  'VITE_SOURCE_CODE_URL',
 ] as const;
 
 export const frontendConfig = registerAs(
