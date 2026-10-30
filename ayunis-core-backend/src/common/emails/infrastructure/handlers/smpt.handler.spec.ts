@@ -102,4 +102,26 @@ describe('SmptHandler', () => {
     expect(receipt).toMatchObject({ statusCode: null });
     expect(receipt).not.toHaveProperty('response');
   });
+
+  it('sends from the configured sender', async () => {
+    sendMail.mockResolvedValue({ accepted: [], rejected: [], response: '' });
+    const config = {
+      get: jest.fn((key: string) =>
+        key === 'emails.smtp.from' ? 'AmtsKI <ayunis@mimann.net>' : undefined,
+      ),
+    };
+    const handler = new SmptHandler(config as unknown as ConfigService);
+
+    await handler.sendEmail(
+      new Email({
+        to: 'maria.muster@stadt-velburg.de',
+        subject: 'x',
+        text: 'x',
+      }),
+    );
+
+    expect(sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({ from: 'AmtsKI <ayunis@mimann.net>' }),
+    );
+  });
 });

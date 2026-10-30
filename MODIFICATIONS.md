@@ -39,6 +39,8 @@ summarizes them as required by section 5(a) of the license.
   user menu link to the source code of the running version (AGPL-3.0 §13).
 - **Legal pages**: the Impressum and Datenschutz links on the login and
   registration pages point to mimann.net instead of ayunis.com.
+- **Configurable email sender** (`SMTP_FROM`): replaces the hardcoded Ayunis
+  sender address, which a self-hosted SMTP account cannot send as.
 - **Container health check** probes `/api/health` instead of `/health`, which the
   SPA fallback always answered, and allows five minutes for the first boot.
 - **Easypanel deployment**: `compose.easypanel.yml`, an environment generator and a

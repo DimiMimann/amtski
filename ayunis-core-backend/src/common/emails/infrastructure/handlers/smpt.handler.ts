@@ -9,10 +9,12 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class SmptHandler implements EmailHandlerPort {
   private readonly transporter: Transporter<SMTPTransport.SentMessageInfo>;
+  private readonly from?: string;
 
   constructor(configService: ConfigService) {
     const user = configService.get<string>('emails.smtp.user');
     const pass = configService.get<string>('emails.smtp.password');
+    this.from = configService.get<string>('emails.smtp.from');
 
     this.transporter = nodemailer.createTransport({
       host: configService.get<string>('emails.smtp.host'),
@@ -24,7 +26,7 @@ export class SmptHandler implements EmailHandlerPort {
   }
   async sendEmail(email: Email): Promise<EmailDeliveryReceipt> {
     const receipt = await this.transporter.sendMail({
-      from: 'Ayunis <noreply@mails.ayunis.com>',
+      from: this.from,
       to: email.to,
       subject: email.subject,
       text: email.html ? '' : email.text,

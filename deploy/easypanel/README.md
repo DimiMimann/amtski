@@ -83,6 +83,13 @@ client_max_body_size 50m;
   and the diffusion weights file as name, e.g.
   `qwen_image_2512_fp8_e4m3fn.safetensors`, then permit it for the
   organization. Images cannot be edited, only generated from text.
+- `SMTP_*` enables invitation, confirmation and password-reset emails. With it
+  set, new registrations must confirm their email address. `SMTP_HOST` must
+  match the server certificate's name. `SMTP_SECURE=true` is for port 465;
+  for 587 use `SMTP_SECURE=false` with `SMTP_REQUIRE_TLS=true`. Set
+  `SMTP_FROM` (e.g. `AmtsKI <user@example.org>`) to an address the SMTP
+  account may send as; it defaults to Ayunis' sender, which other servers
+  reject.
 - `TRUST_PROXY=2` assumes one reverse proxy in front of Easypanel's Traefik.
   Add that proxy's address under Easypanel's Trusted Proxies so client IPs
   survive both hops.

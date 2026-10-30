@@ -93,6 +93,8 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     deploy:
       resources:
         limits:

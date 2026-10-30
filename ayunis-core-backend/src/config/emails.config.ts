@@ -9,5 +9,7 @@ export const emailsConfig = registerAs('emails', () => ({
     user: process.env.SMTP_USER,
     password: process.env.SMTP_PASSWORD,
     requireTLS: process.env.SMTP_REQUIRE_TLS === 'true',
+    // Must be an address the SMTP account may send as (SPF/DMARC).
+    from: process.env.SMTP_FROM?.trim() || 'Ayunis <noreply@mails.ayunis.com>',
   },
 }));
