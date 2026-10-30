@@ -82,7 +82,9 @@ client_max_body_size 50m;
   installed). In **Models Catalog** add an image model with provider **Azure**
   and the diffusion weights file as name, e.g.
   `qwen_image_2512_fp8_e4m3fn.safetensors`, then permit it for the
-  organization. Images cannot be edited, only generated from text.
+  organization. Edits of up to three images (generated or uploaded) run on
+  `qwen_image_edit_2511_int8_convrot` with its 4-step Lightning LoRA. Uploads
+  stay in ComfyUI's `input` folder as `amtski-*`; prune them there.
 - `SMTP_*` enables invitation, confirmation and password-reset emails. With it
   set, new registrations must confirm their email address. `SMTP_HOST` must
   match the server certificate's name. `SMTP_SECURE=true` is for port 465;

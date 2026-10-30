@@ -70,7 +70,16 @@ describe('ComfyUiImageGenerationHandler', () => {
     ],
     submitStatus = 200,
   ): void {
+    let uploads = 0;
     fetchSpy.mockImplementation((url: string) => {
+      if (url.endsWith('/upload/image')) {
+        uploads += 1;
+        return json({
+          name: `up-${uploads}.png`,
+          subfolder: '',
+          type: 'input',
+        });
+      }
       if (url.endsWith('/prompt')) {
         return json({ prompt_id: 'p1' }, submitStatus);
       }
@@ -86,7 +95,9 @@ describe('ComfyUiImageGenerationHandler', () => {
   }
 
   function submittedGraph(): Record<string, WorkflowNode> {
-    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    const [, init] = (fetchSpy.mock.calls as [string, RequestInit][]).find(
+      ([url]) => url.endsWith('/prompt'),
+    )!;
     return (
       JSON.parse(init.body as string) as {
         prompt: Record<string, WorkflowNode>;
@@ -180,12 +191,52 @@ describe('ComfyUiImageGenerationHandler', () => {
     await assertion;
   });
 
-  it('rejects reference images without contacting ComfyUI', async () => {
+  it('edits reference images with the Qwen-Image-Edit workflow', async () => {
     serve();
+    const reference = { data: PNG, contentType: 'image/png' };
+
+    const result = await handler.generate(
+      input({
+        prompt: 'Setze dem Hund einen Hut auf',
+        referenceImages: [reference, reference],
+      }),
+    );
+
+    expect(result.imageData).toEqual(PNG);
+    const uploadCalls = fetchSpy.mock.calls.filter(([url]) =>
+      (url as string).endsWith('/upload/image'),
+    );
+    expect(uploadCalls).toHaveLength(2);
+    const graph = submittedWorkflow();
+    expect(
+      graph
+        .filter((n) => n.class_type === 'LoadImage')
+        .map((n) => n.inputs.image),
+    ).toEqual(['up-1.png', 'up-2.png']);
+    expect(node('UNETLoader')?.unet_name).toBe(
+      'qwen_image_edit_2511_int8_convrot.safetensors',
+    );
+    const [positiveId] = node('KSampler')?.positive as [string, number];
+    const [encoderId] = submittedGraph()[positiveId].inputs.conditioning as [
+      string,
+      number,
+    ];
+    const encoder = submittedGraph()[encoderId].inputs;
+    expect(encoder.prompt).toBe('Setze dem Hund einen Hut auf');
+    expect(encoder).toHaveProperty('image1');
+    expect(encoder).toHaveProperty('image2');
+    expect(encoder).not.toHaveProperty('image3');
+  });
+
+  it('rejects more reference images than the edit model takes', async () => {
+    serve();
+    const reference = { data: PNG, contentType: 'image/png' };
 
     await expect(
       handler.generate(
-        input({ referenceImages: [{ data: PNG, contentType: 'image/png' }] }),
+        input({
+          referenceImages: [reference, reference, reference, reference],
+        }),
       ),
     ).rejects.toBeInstanceOf(ImageGenerationFailedError);
     expect(fetchSpy).not.toHaveBeenCalled();

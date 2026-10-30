@@ -1,18 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomInt } from 'crypto';
+import { randomInt, randomUUID } from 'crypto';
 import {
   ImageGenerationHandler,
   ImageGenerationInput,
   ImageGenerationResult,
+  type ReferenceImage,
 } from 'src/domain/models/application/ports/image-generation.handler';
 import { ImageGenerationFailedError } from 'src/domain/models/application/models.errors';
 import { ProviderTimeoutError } from 'src/common/errors/provider.errors';
+import { contentTypeToExtension } from 'src/common/util/content-type.util';
 import type { AzureImageGenerationHandler } from './azure.image-generation';
 
 const POLL_INTERVAL_MS = 1_000;
 // Jobs queue behind other clients of the same ComfyUI (e.g. Open WebUI).
 const MAX_WAIT_MS = 10 * 60_000;
+
+// TextEncodeQwenImageEditPlus has three image inputs.
+const MAX_REFERENCE_IMAGES = 3;
 
 // Qwen-Image's native resolutions for 1:1, 16:9 and 9:16.
 const SIZES: Partial<Record<string, { width: number; height: number }>> = {
@@ -37,8 +42,9 @@ type ComfyHistoryEntry = {
 };
 
 /**
- * Text-to-image through a self-hosted ComfyUI. Serves the Azure provider slot
- * when COMFYUI_URL is set, so the catalog and API contract stay unchanged.
+ * Image generation and editing through a self-hosted ComfyUI. Serves the Azure
+ * provider slot when COMFYUI_URL is set, so the catalog and API contract stay
+ * unchanged.
  */
 @Injectable()
 export class ComfyUiImageGenerationHandler extends ImageGenerationHandler {
@@ -49,9 +55,10 @@ export class ComfyUiImageGenerationHandler extends ImageGenerationHandler {
   }
 
   async generate(input: ImageGenerationInput): Promise<ImageGenerationResult> {
-    if (input.referenceImages?.length) {
+    const references = input.referenceImages ?? [];
+    if (references.length > MAX_REFERENCE_IMAGES) {
       throw new ImageGenerationFailedError(
-        'This image model cannot edit or combine existing images. Describe the complete image in the prompt instead.',
+        `This image model combines at most ${MAX_REFERENCE_IMAGES} reference images. Choose the most relevant ones.`,
       );
     }
     const size = SIZES[input.size ?? 'auto'];
@@ -60,15 +67,20 @@ export class ComfyUiImageGenerationHandler extends ImageGenerationHandler {
         `Unsupported image size '${input.size}'. Supported sizes: ${Object.keys(SIZES).join(', ')}`,
       );
     }
-    this.logger.log({ model: input.model.name, size }, 'Generating image');
+    this.logger.log(
+      { model: input.model.name, size, referenceCount: references.length },
+      'Generating image',
+    );
 
+    // Edits keep the first reference's aspect ratio; `size` applies to new images.
+    const workflow = references.length
+      ? qwenImageEditWorkflow(await this.upload(references), input.prompt)
+      : qwenImageWorkflow(input.model.name, input.prompt, size);
     const { prompt_id: promptId } = (await (
       await this.request('/prompt', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          prompt: qwenImageWorkflow(input.model.name, input.prompt, size),
-        }),
+        body: JSON.stringify({ prompt: workflow }),
       })
     ).json()) as { prompt_id: string };
     const image = await this.waitForImage(promptId, input.model.name);
@@ -82,6 +94,31 @@ export class ComfyUiImageGenerationHandler extends ImageGenerationHandler {
       undefined,
       input.background === 'transparent' ? false : undefined,
     );
+  }
+
+  // ponytail: uploads stay in ComfyUI's input folder; prune it on the
+  // ComfyUI host (e.g. a cron deleting amtski-* older than a day) if it grows.
+  private async upload(references: ReferenceImage[]): Promise<string[]> {
+    const names: string[] = [];
+    for (const reference of references) {
+      const form = new FormData();
+      form.append(
+        'image',
+        new Blob([new Uint8Array(reference.data)], {
+          type: reference.contentType,
+        }),
+        `amtski-${randomUUID()}${contentTypeToExtension(reference.contentType)}`,
+      );
+      const uploaded = (await (
+        await this.request('/upload/image', { method: 'POST', body: form })
+      ).json()) as { name: string; subfolder: string };
+      names.push(
+        uploaded.subfolder
+          ? `${uploaded.subfolder}/${uploaded.name}`
+          : uploaded.name,
+      );
+    }
+    return names;
   }
 
   private async waitForImage(
@@ -132,22 +169,11 @@ export class ComfyUiImageGenerationHandler extends ImageGenerationHandler {
 
 type WorkflowNode = { class_type: string; inputs: Record<string, unknown> };
 
-// ponytail: the graph is Qwen-Image specific (text encoder, VAE, 4-step
-// Lightning LoRA); the catalog model name only picks the diffusion weights.
-// Make these configurable if another model family is ever served.
-const QWEN_IMAGE_NODES: Record<string, WorkflowNode> = {
-  lora: {
-    class_type: 'LoraLoaderModelOnly',
-    inputs: {
-      lora_name: 'Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors',
-      strength_model: 1,
-      model: ['unet', 0],
-    },
-  },
-  sampling: {
-    class_type: 'ModelSamplingAuraFlow',
-    inputs: { shift: 3.1, model: ['lora', 0] },
-  },
+// ponytail: both graphs are Qwen-Image specific (text encoder, VAE, 4-step
+// Lightning LoRAs, the edit weights); the catalog model name only picks the
+// text-to-image diffusion weights. Make these configurable if another model
+// family is ever served.
+const SHARED_NODES: Record<string, WorkflowNode> = {
   clip: {
     class_type: 'CLIPLoader',
     inputs: {
@@ -160,10 +186,6 @@ const QWEN_IMAGE_NODES: Record<string, WorkflowNode> = {
     class_type: 'VAELoader',
     inputs: { vae_name: 'qwen_image_vae.safetensors' },
   },
-  negative: {
-    class_type: 'CLIPTextEncode',
-    inputs: { text: '', clip: ['clip', 0] },
-  },
   decode: {
     class_type: 'VAEDecode',
     inputs: { samples: ['sampler', 0], vae: ['vae', 0] },
@@ -175,25 +197,11 @@ const QWEN_IMAGE_NODES: Record<string, WorkflowNode> = {
   },
 };
 
-function qwenImageWorkflow(
-  unetName: string,
-  prompt: string,
-  size: { width: number; height: number },
+function lightningSampler(
+  model: string,
+  latent: string,
 ): Record<string, WorkflowNode> {
   return {
-    ...QWEN_IMAGE_NODES,
-    unet: {
-      class_type: 'UNETLoader',
-      inputs: { unet_name: unetName, weight_dtype: 'default' },
-    },
-    positive: {
-      class_type: 'CLIPTextEncode',
-      inputs: { text: prompt, clip: ['clip', 0] },
-    },
-    latent: {
-      class_type: 'EmptySD3LatentImage',
-      inputs: { ...size, batch_size: 1 },
-    },
     sampler: {
       class_type: 'KSampler',
       inputs: {
@@ -203,10 +211,128 @@ function qwenImageWorkflow(
         sampler_name: 'euler',
         scheduler: 'simple',
         denoise: 1,
-        model: ['sampling', 0],
+        model: [model, 0],
         positive: ['positive', 0],
         negative: ['negative', 0],
-        latent_image: ['latent', 0],
+        latent_image: [latent, 0],
+      },
+    },
+  };
+}
+
+function qwenImageWorkflow(
+  unetName: string,
+  prompt: string,
+  size: { width: number; height: number },
+): Record<string, WorkflowNode> {
+  return {
+    ...SHARED_NODES,
+    unet: {
+      class_type: 'UNETLoader',
+      inputs: { unet_name: unetName, weight_dtype: 'default' },
+    },
+    lora: {
+      class_type: 'LoraLoaderModelOnly',
+      inputs: {
+        lora_name: 'Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors',
+        strength_model: 1,
+        model: ['unet', 0],
+      },
+    },
+    sampling: {
+      class_type: 'ModelSamplingAuraFlow',
+      inputs: { shift: 3.1, model: ['lora', 0] },
+    },
+    positive: {
+      class_type: 'CLIPTextEncode',
+      inputs: { text: prompt, clip: ['clip', 0] },
+    },
+    negative: {
+      class_type: 'CLIPTextEncode',
+      inputs: { text: '', clip: ['clip', 0] },
+    },
+    latent: {
+      class_type: 'EmptySD3LatentImage',
+      inputs: { ...size, batch_size: 1 },
+    },
+    ...lightningSampler('sampling', 'latent'),
+  };
+}
+
+// Mirrors the Qwen-Image-Edit-2511 graph hub.mimann.net (Open WebUI) runs.
+function qwenImageEditWorkflow(
+  imageNames: string[],
+  prompt: string,
+): Record<string, WorkflowNode> {
+  const images: Record<string, WorkflowNode> = {};
+  const imageInputs: Record<string, [string, number]> = {};
+  imageNames.forEach((name, index) => {
+    images[`load${index + 1}`] = {
+      class_type: 'LoadImage',
+      inputs: { image: name },
+    };
+    images[`scale${index + 1}`] = {
+      class_type: 'FluxKontextImageScale',
+      inputs: { image: [`load${index + 1}`, 0] },
+    };
+    imageInputs[`image${index + 1}`] = [`scale${index + 1}`, 0];
+  });
+  const encode = (text: string): WorkflowNode => ({
+    class_type: 'TextEncodeQwenImageEditPlus',
+    inputs: {
+      prompt: text,
+      clip: ['clip', 0],
+      vae: ['vae', 0],
+      ...imageInputs,
+    },
+  });
+  const withReferenceLatents = (conditioning: string): WorkflowNode => ({
+    class_type: 'FluxKontextMultiReferenceLatentMethod',
+    inputs: {
+      reference_latents_method: 'index_timestep_zero',
+      conditioning: [conditioning, 0],
+    },
+  });
+  return {
+    ...SHARED_NODES,
+    ...images,
+    ...qwenImageEditModel(),
+    positiveText: encode(prompt),
+    negativeText: encode(''),
+    positive: withReferenceLatents('positiveText'),
+    negative: withReferenceLatents('negativeText'),
+    latent: {
+      class_type: 'VAEEncode',
+      inputs: { pixels: ['scale1', 0], vae: ['vae', 0] },
+    },
+    ...lightningSampler('lora', 'latent'),
+  };
+}
+
+function qwenImageEditModel(): Record<string, WorkflowNode> {
+  return {
+    unet: {
+      class_type: 'UNETLoader',
+      inputs: {
+        unet_name: 'qwen_image_edit_2511_int8_convrot.safetensors',
+        weight_dtype: 'default',
+      },
+    },
+    sampling: {
+      class_type: 'ModelSamplingAuraFlow',
+      inputs: { shift: 3.1, model: ['unet', 0] },
+    },
+    cfgNorm: {
+      class_type: 'CFGNorm',
+      inputs: { strength: 1, pre_cfg: false, model: ['sampling', 0] },
+    },
+    lora: {
+      class_type: 'LoraLoaderModelOnly',
+      inputs: {
+        lora_name:
+          'Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors',
+        strength_model: 1,
+        model: ['cfgNorm', 0],
       },
     },
   };
