@@ -77,6 +77,12 @@ client_max_body_size 50m;
 - `DOCLING_URL` sends PDFs, and Office files after their PDF conversion, to
   your docling-serve for OCR, so scanned documents become searchable. Left
   empty, only PDFs with a text layer yield text.
+- `COMFYUI_URL` sends image generation to your ComfyUI (Qwen-Image 2512 with
+  the 4-step Lightning LoRA, `qwen_2.5_vl_7b_fp8_scaled` and `qwen_image_vae`
+  installed). In **Models Catalog** add an image model with provider **Azure**
+  and the diffusion weights file as name, e.g.
+  `qwen_image_2512_fp8_e4m3fn.safetensors`, then permit it for the
+  organization. Images cannot be edited, only generated from text.
 - `TRUST_PROXY=2` assumes one reverse proxy in front of Easypanel's Traefik.
   Add that proxy's address under Easypanel's Trusted Proxies so client IPs
   survive both hops.

@@ -87,6 +87,10 @@ import { ScalewayStreamInferenceHandler } from './infrastructure/stream-inferenc
 import { ConfigService } from '@nestjs/config';
 import { ImageGenerationHandlerRegistry } from './application/registry/image-generation-handler.registry';
 import { AzureImageGenerationHandler } from './infrastructure/image-generation/azure.image-generation';
+import {
+  ComfyUiImageGenerationHandler,
+  selectAzureImageHandler,
+} from './infrastructure/image-generation/comfyui.image-generation';
 import { MockImageGenerationHandler } from './infrastructure/image-generation/mock.image-generation';
 import { GenerateImageUseCase } from './application/use-cases/generate-image/generate-image.use-case';
 import { TeamsModule } from 'src/iam/teams/teams.module';
@@ -165,6 +169,7 @@ import { UsageReferencesModule } from 'src/domain/usage/usage-references.module'
     MockStreamInferenceHandler,
     MockInferenceHandler,
     AzureImageGenerationHandler,
+    ComfyUiImageGenerationHandler,
     MockImageGenerationHandler,
     {
       provide: StreamInferenceHandlerRegistry,
@@ -276,16 +281,21 @@ import { UsageReferencesModule } from 'src/domain/usage/usage-references.module'
       provide: ImageGenerationHandlerRegistry,
       useFactory: (
         azureHandler: AzureImageGenerationHandler,
+        comfyUiHandler: ComfyUiImageGenerationHandler,
         mockHandler: MockImageGenerationHandler,
         configService: ConfigService,
       ) => {
         const registry = new ImageGenerationHandlerRegistry(configService);
-        registry.register(ModelProvider.AZURE, azureHandler);
+        registry.register(
+          ModelProvider.AZURE,
+          selectAzureImageHandler(configService, azureHandler, comfyUiHandler),
+        );
         registry.registerMockHandler(mockHandler);
         return registry;
       },
       inject: [
         AzureImageGenerationHandler,
+        ComfyUiImageGenerationHandler,
         MockImageGenerationHandler,
         ConfigService,
       ],

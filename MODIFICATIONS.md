@@ -50,3 +50,6 @@ summarizes them as required by section 5(a) of the license.
 - **Docling OCR** (`DOCLING_URL`): PDFs, including converted Office files, are
   read by a self-hosted docling-serve through its async API, preferred over
   Mistral OCR; unreadable documents still fall back to local PDF parsing.
+- **ComfyUI image generation** (`COMFYUI_URL`): the `generate_image` tool renders
+  through a self-hosted ComfyUI with a Qwen-Image text-to-image workflow, in place
+  of Azure, when the URL is set. Editing existing images is not supported.

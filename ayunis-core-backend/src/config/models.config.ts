@@ -28,6 +28,8 @@ const stackitConfig = () => ({
 export const modelsConfig = registerAs('models', () => ({
   mistral: mistralConfig(),
   whisper: whisperConfig(),
+  // A self-hosted ComfyUI; serves the Azure image-generation slot when set.
+  comfyui: { url: process.env.COMFYUI_URL?.trim() || undefined },
   openai: {
     apiKey: process.env.OPENAI_API_KEY,
   },

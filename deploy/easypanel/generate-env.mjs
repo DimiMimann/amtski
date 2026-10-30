@@ -41,6 +41,7 @@ EMBEDDINGS_BASE_URL=<http://host:port/v1 of the OpenAI-compatible embedding serv
 EMBEDDINGS_API_KEY=local
 WHISPER_BASE_URL=<http://host:port/v1 of the OpenAI-compatible transcription server>
 DOCLING_URL=<http://host:port of docling-serve>
+COMFYUI_URL=<http://host:port of ComfyUI>
 
 SMTP_HOST=
 SMTP_PORT=

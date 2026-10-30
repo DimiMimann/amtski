@@ -85,6 +85,8 @@ services:
       WHISPER_API_KEY: ${WHISPER_API_KEY:-}
       # Local docling-serve for PDF OCR (scans); empty means text-layer parsing only.
       DOCLING_URL: ${DOCLING_URL:-}
+      # Local ComfyUI for image generation (Azure model slot); empty means Azure.
+      COMFYUI_URL: ${COMFYUI_URL:-}
 
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}
