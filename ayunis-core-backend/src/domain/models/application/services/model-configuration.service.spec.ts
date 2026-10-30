@@ -7,6 +7,7 @@ import {
 import { ModelProviderInfoRegistry } from 'src/domain/models/application/registry/model-provider-info.registry';
 import { ModelConfigurationService } from 'src/domain/models/application/services/model-configuration.service';
 import { LanguageModel } from 'src/domain/models/domain/models/language.model';
+import { ImageGenerationModel } from 'src/domain/models/domain/models/image-generation.model';
 import { ModelProvider } from 'src/domain/models/domain/value-objects/model-provider.enum';
 
 const createLanguageModel = (params?: {
@@ -88,5 +89,36 @@ describe('ModelConfigurationService', () => {
       ModelNotConfiguredError,
     );
     expect(configService.get).not.toHaveBeenCalled();
+  });
+
+  describe('with ComfyUI serving the Azure image slot', () => {
+    const configWith = (values: Record<string, string>) =>
+      configService.get.mockImplementation((key: string) => values[key]);
+
+    beforeEach(() => {
+      providerRegistry.getConfigKey.mockReturnValue('models.azure.apiKey');
+    });
+
+    it('accepts an Azure image model without Azure credentials', () => {
+      configWith({ 'models.comfyui.url': 'http://comfyui.test:8188' });
+      const model = new ImageGenerationModel({
+        name: 'qwen_image_2512_fp8_e4m3fn.safetensors',
+        displayName: 'Bild',
+        provider: ModelProvider.AZURE,
+        isArchived: false,
+      });
+
+      expect(service.isConfiguredAndActive(model)).toBe(true);
+    });
+
+    it('still requires Azure credentials for Azure language models', () => {
+      configWith({ 'models.comfyui.url': 'http://comfyui.test:8188' });
+
+      expect(
+        service.isConfiguredAndActive(
+          createLanguageModel({ provider: ModelProvider.AZURE }),
+        ),
+      ).toBe(false);
+    });
   });
 });

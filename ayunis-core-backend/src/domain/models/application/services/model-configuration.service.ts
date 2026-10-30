@@ -6,6 +6,8 @@ import {
 } from 'src/domain/models/application/models.errors';
 import { ModelProviderInfoRegistry } from 'src/domain/models/application/registry/model-provider-info.registry';
 import type { Model } from 'src/domain/models/domain/model.entity';
+import { ModelProvider } from 'src/domain/models/domain/value-objects/model-provider.enum';
+import { ModelType } from 'src/domain/models/domain/value-objects/model-type.enum';
 
 @Injectable()
 export class ModelConfigurationService {
@@ -28,9 +30,13 @@ export class ModelConfigurationService {
   }
 
   private hasProviderConfiguration(model: Model): boolean {
-    const configKey = this.modelProviderInfoRegistry.getConfigKey(
-      model.provider,
-    );
+    // ComfyUI serves the Azure image slot (see selectAzureImageHandler).
+    const configKey =
+      model.type === ModelType.IMAGE_GENERATION &&
+      model.provider === ModelProvider.AZURE &&
+      this.configService.get<string>('models.comfyui.url')
+        ? 'models.comfyui.url'
+        : this.modelProviderInfoRegistry.getConfigKey(model.provider);
     if (!configKey) {
       return false;
     }
