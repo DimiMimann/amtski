@@ -1,7 +1,4 @@
-import { BudgetWarningScope } from '../../../domain/value-objects/budget-warning-scope.enum';
-
-const HELP_EMAIL = 'help@ayunis.com';
-const HELP_LINK = `<a href="mailto:${HELP_EMAIL}">${HELP_EMAIL}</a>`;
+import { BudgetWarningScope } from 'src/common/email-templates/domain/value-objects/budget-warning-scope.enum';
 
 // Name variants: `text` is the raw (normalized) name for the plain-text
 // email, `html` is the already-escaped variant for the MJML body.
@@ -87,16 +84,12 @@ function orgWarning50Message(
     settingsLinkLabel: 'Budget-Einstellungen',
     paragraphs: [
       {
-        text: `Ihr Team nutzt Ayunis Core bereits aktiv – mindestens ${threshold} % Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.`,
-        html: `Ihr Team nutzt Ayunis Core bereits aktiv – mindestens <strong>${threshold} %</strong> Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.`,
+        text: `Ihr Team nutzt AmtsKI bereits aktiv – mindestens ${threshold} % Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.`,
+        html: `Ihr Team nutzt AmtsKI bereits aktiv – mindestens <strong>${threshold} %</strong> Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.`,
       },
       {
         text: 'In den Budget-Einstellungen sehen Sie jederzeit den aktuellen Verbrauch und wie er sich entwickelt.',
         html: `In den ${settingsLink(settingsUrl, 'Budget-Einstellungen')} sehen Sie jederzeit den aktuellen Verbrauch und wie er sich entwickelt.`,
-      },
-      {
-        text: `Zeichnet sich ab, dass das Budget vor Ende des Zeitraums aufgebraucht sein wird? Sprechen Sie frühzeitig mit Ihrem persönlichen Ansprechpartner unter ${HELP_EMAIL} – gemeinsam finden wir das passende Paket für Ihren Bedarf.`,
-        html: `Zeichnet sich ab, dass das Budget vor Ende des Zeitraums aufgebraucht sein wird? Sprechen Sie frühzeitig mit Ihrem persönlichen Ansprechpartner unter ${HELP_LINK} – gemeinsam finden wir das passende Paket für Ihren Bedarf.`,
       },
     ],
   };
@@ -118,8 +111,8 @@ function orgWarning80Message(
         html: `mindestens <strong>${threshold} %</strong> Ihres Organisationsbudgets sind aufgebraucht. Damit Ihr Team ohne Einschränkung mit den leistungsstarken Modellen weiterarbeiten kann, lohnt sich jetzt ein Blick auf den Verbrauch in den ${settingsLink(settingsUrl, 'Budget-Einstellungen')}.`,
       },
       {
-        text: `Sollte das Budget vollständig aufgebraucht sein, lassen wir Ihr Team nicht im Stich: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass die Arbeit nie ganz stillsteht. Diese sind allerdings deutlich weniger leistungsfähig und für anspruchsvolle Aufgaben nur eingeschränkt geeignet. Damit Ihr Team durchgängig auf voller Leistung bleibt, erweitern Sie Ihr Paket am besten rechtzeitig. Ihr persönlicher Ansprechpartner hilft Ihnen gern: ${HELP_EMAIL}.`,
-        html: `Sollte das Budget vollständig aufgebraucht sein, lassen wir Ihr Team nicht im Stich: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass die Arbeit nie ganz stillsteht. Diese sind allerdings deutlich weniger leistungsfähig und für anspruchsvolle Aufgaben nur eingeschränkt geeignet. Damit Ihr Team durchgängig auf voller Leistung bleibt, erweitern Sie Ihr Paket am besten rechtzeitig. Ihr persönlicher Ansprechpartner hilft Ihnen gern: ${HELP_LINK}.`,
+        text: `Sollte das Budget vollständig aufgebraucht sein, lassen wir Ihr Team nicht im Stich: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass die Arbeit nie ganz stillsteht. Diese sind allerdings deutlich weniger leistungsfähig und für anspruchsvolle Aufgaben nur eingeschränkt geeignet.`,
+        html: `Sollte das Budget vollständig aufgebraucht sein, lassen wir Ihr Team nicht im Stich: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass die Arbeit nie ganz stillsteht. Diese sind allerdings deutlich weniger leistungsfähig und für anspruchsvolle Aufgaben nur eingeschränkt geeignet.`,
       },
     ],
   };
@@ -138,8 +131,8 @@ function orgExhaustedMessage(settingsUrl: string): BudgetWarningMessage {
         html: 'Ihr <strong>Organisationsbudget</strong> für diesen Zeitraum ist vollständig aufgebraucht. Ihr Team steht damit aber nicht still: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass Ihr Team ohne Unterbrechung weiterarbeiten kann. Diese sind jedoch deutlich weniger leistungsfähig als gewohnt und für anspruchsvolle Aufgaben nur eingeschränkt geeignet.',
       },
       {
-        text: `Alle Details finden Sie in den Budget-Einstellungen. Damit Ihr Team wieder mit den vollen, leistungsstarken Modellen arbeiten kann, erweitern Sie Ihr Paket. Ihr persönlicher Ansprechpartner findet mit Ihnen schnell die passende Lösung: ${HELP_EMAIL}.`,
-        html: `Alle Details finden Sie in den ${settingsLink(settingsUrl, 'Budget-Einstellungen')}. Damit Ihr Team wieder mit den vollen, leistungsstarken Modellen arbeiten kann, erweitern Sie Ihr Paket. Ihr persönlicher Ansprechpartner findet mit Ihnen schnell die passende Lösung: ${HELP_LINK}.`,
+        text: `Alle Details finden Sie in den Budget-Einstellungen.`,
+        html: `Alle Details finden Sie in den ${settingsLink(settingsUrl, 'Budget-Einstellungen')}.`,
       },
     ],
   };
@@ -159,8 +152,8 @@ function userMessage(
       settingsLinkLabel: 'Einstellungen',
       paragraphs: [
         {
-          text: `${name.text} hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.`,
-          html: `<strong>${name.html}</strong> hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.`,
+          text: `${name.text} hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.`,
+          html: `<strong>${name.html}</strong> hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.`,
         },
         {
           text: 'Passen Sie das Limit in den Einstellungen an, damit diese Person wieder normal weiterarbeiten kann.',
@@ -177,8 +170,8 @@ function userMessage(
     settingsLinkLabel: 'Einstellungen',
     paragraphs: [
       {
-        text: `${name.text} hat mindestens ${threshold} % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
-        html: `<strong>${name.html}</strong> hat mindestens <strong>${threshold} %</strong> des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
+        text: `${name.text} hat mindestens ${threshold} % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
+        html: `<strong>${name.html}</strong> hat mindestens <strong>${threshold} %</strong> des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
       },
       {
         text: 'Sie können das Limit für einzelne Nutzer jederzeit in den Einstellungen prüfen und anpassen.',
@@ -202,8 +195,8 @@ function teamMessage(
       settingsLinkLabel: 'Einstellungen',
       paragraphs: [
         {
-          text: `das Team ${name.text} hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.`,
-          html: `das Team <strong>${name.html}</strong> hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.`,
+          text: `das Team ${name.text} hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.`,
+          html: `das Team <strong>${name.html}</strong> hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.`,
         },
         {
           text: 'Passen Sie das Limit in den Einstellungen an, damit das Team wieder normal weiterarbeiten kann.',
@@ -220,8 +213,8 @@ function teamMessage(
     settingsLinkLabel: 'Einstellungen',
     paragraphs: [
       {
-        text: `das Team ${name.text} hat mindestens ${threshold} % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
-        html: `das Team <strong>${name.html}</strong> hat mindestens <strong>${threshold} %</strong> des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
+        text: `das Team ${name.text} hat mindestens ${threshold} % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
+        html: `das Team <strong>${name.html}</strong> hat mindestens <strong>${threshold} %</strong> des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.`,
       },
       {
         text: 'Sie können das Limit für einzelne Teams jederzeit in den Einstellungen prüfen und anpassen.',

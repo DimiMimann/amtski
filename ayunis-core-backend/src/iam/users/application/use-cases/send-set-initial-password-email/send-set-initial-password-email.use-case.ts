@@ -85,7 +85,7 @@ export class SendSetInitialPasswordEmailUseCase {
       userEmail: command.userEmail,
       invitingCompanyName: orgName,
       userName: command.userName,
-      productName: 'Ayunis Core',
+      productName: 'AmtsKI',
       currentYear: new Date().getFullYear().toString(),
       logoUrl: `${assetBase}/logo.png`,
       teamUrl: `${assetBase}/team.png`,

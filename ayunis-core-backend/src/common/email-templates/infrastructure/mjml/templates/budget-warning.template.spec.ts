@@ -15,7 +15,7 @@ function content(
     scope: BudgetWarningScope.ORG,
     targetName: 'Stadt Musterhausen',
     threshold: '80',
-    productName: 'Ayunis Core',
+    productName: 'AmtsKI',
     currentYear: '2026',
     logoUrl: 'https://app.example/email/logo.png',
     teamUrl: 'https://app.example/email/team.png',
@@ -29,23 +29,21 @@ describe('budget-warning template', () => {
     it('renders the active-usage message in plain text', () => {
       const text = budgetWarningText(content({ threshold: '50' }));
 
-      expect(text).toContain('Ayunis Core – Budgetwarnung');
+      expect(text).toContain('AmtsKI – Budgetwarnung');
       expect(text).toContain('Hallo Andrea Admin,');
       expect(text).toContain(
-        'Ihr Team nutzt Ayunis Core bereits aktiv – mindestens 50 % Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.',
+        'Ihr Team nutzt AmtsKI bereits aktiv – mindestens 50 % Ihres Organisationsbudgets für diesen Zeitraum sind aufgebraucht. Ein gutes Zeichen dafür, dass KI in Ihrer Organisation ankommt.',
       );
       expect(text).toContain(
         'In den Budget-Einstellungen sehen Sie jederzeit den aktuellen Verbrauch und wie er sich entwickelt.',
       );
-      expect(text).toContain(
-        'Sprechen Sie frühzeitig mit Ihrem persönlichen Ansprechpartner unter help@ayunis.com',
-      );
+      expect(text).not.toContain('Ansprechpartner');
       expect(text).toContain(
         'Budget-Einstellungen: https://app.example/admin-settings/usage',
       );
     });
 
-    it('renders valid HTML with settings and help links', async () => {
+    it('renders valid HTML with the settings link and no vendor branding', async () => {
       const result = await budgetWarningHtml(content({ threshold: '50' }));
 
       expect(result.errors).toHaveLength(0);
@@ -55,7 +53,7 @@ describe('budget-warning template', () => {
       expect(result.html).toMatch(
         /<a[^>]*href="https:\/\/app\.example\/admin-settings\/usage"[^>]*>Budget-Einstellungen<\/a>/,
       );
-      expect(result.html).toContain('mailto:help@ayunis.com');
+      expect(result.html).not.toMatch(/ayunis|locaboo/i);
     });
   });
 
@@ -63,16 +61,14 @@ describe('budget-warning template', () => {
     it('warns about the free-model fallback in plain text', () => {
       const text = budgetWarningText(content({ threshold: '80' }));
 
-      expect(text).toContain('Ayunis Core – Budgetwarnung');
+      expect(text).toContain('AmtsKI – Budgetwarnung');
       expect(text).toContain(
         'mindestens 80 % Ihres Organisationsbudgets sind aufgebraucht. Damit Ihr Team ohne Einschränkung mit den leistungsstarken Modellen weiterarbeiten kann, lohnt sich jetzt ein Blick auf den Verbrauch in den Budget-Einstellungen.',
       );
       expect(text).toContain(
         'Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass die Arbeit nie ganz stillsteht.',
       );
-      expect(text).toContain(
-        'Ihr persönlicher Ansprechpartner hilft Ihnen gern: help@ayunis.com.',
-      );
+      expect(text).not.toContain('Ansprechpartner');
     });
 
     it('renders valid HTML', async () => {
@@ -89,16 +85,14 @@ describe('budget-warning template', () => {
     it('announces exhaustion and the free-model fallback in plain text', () => {
       const text = budgetWarningText(content({ threshold: '100' }));
 
-      expect(text).toContain('Ayunis Core – Budget aufgebraucht');
+      expect(text).toContain('AmtsKI – Budget aufgebraucht');
       expect(text).toContain(
         'Ihr Organisationsbudget für diesen Zeitraum ist vollständig aufgebraucht. Ihr Team steht damit aber nicht still: Als Sicherheitsnetz stehen im Chat weiterhin kostenlose Modelle zur Verfügung, sodass Ihr Team ohne Unterbrechung weiterarbeiten kann.',
       );
       expect(text).toContain(
-        'Alle Details finden Sie in den Budget-Einstellungen. Damit Ihr Team wieder mit den vollen, leistungsstarken Modellen arbeiten kann, erweitern Sie Ihr Paket.',
+        'Alle Details finden Sie in den Budget-Einstellungen.',
       );
-      expect(text).toContain(
-        'Ihr persönlicher Ansprechpartner findet mit Ihnen schnell die passende Lösung: help@ayunis.com.',
-      );
+      expect(text).not.toContain('Ansprechpartner');
       expect(text).not.toContain('mindestens');
     });
 
@@ -120,9 +114,9 @@ describe('budget-warning template', () => {
     it('names the user and explains the consequence in plain text', () => {
       const text = budgetWarningText(userContent);
 
-      expect(text).toContain('Ayunis Core – Limitwarnung');
+      expect(text).toContain('AmtsKI – Limitwarnung');
       expect(text).toContain(
-        'Jane Doe hat mindestens 80 % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.',
+        'Jane Doe hat mindestens 80 % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, kann diese Person AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.',
       );
       expect(text).toContain(
         'Sie können das Limit für einzelne Nutzer jederzeit in den Einstellungen prüfen und anpassen.',
@@ -153,9 +147,9 @@ describe('budget-warning template', () => {
         }),
       );
 
-      expect(text).toContain('Ayunis Core – Limit erreicht');
+      expect(text).toContain('AmtsKI – Limit erreicht');
       expect(text).toContain(
-        'Jane Doe hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.',
+        'Jane Doe hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.',
       );
       expect(text).toContain(
         'Passen Sie das Limit in den Einstellungen an, damit diese Person wieder normal weiterarbeiten kann.',
@@ -173,9 +167,9 @@ describe('budget-warning template', () => {
         }),
       );
 
-      expect(text).toContain('Ayunis Core – Limitwarnung');
+      expect(text).toContain('AmtsKI – Limitwarnung');
       expect(text).toContain(
-        'das Team Engineering hat mindestens 80 % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder Ayunis Core nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.',
+        'das Team Engineering hat mindestens 80 % des individuell festgelegten Limits erreicht. Sobald das Limit vollständig erreicht ist, können die Teammitglieder AmtsKI nicht mehr mit allen Modellen nutzen, bis Sie das Limit anpassen.',
       );
       expect(text).toContain(
         'Sie können das Limit für einzelne Teams jederzeit in den Einstellungen prüfen und anpassen.',
@@ -193,9 +187,9 @@ describe('budget-warning template', () => {
         }),
       );
 
-      expect(text).toContain('Ayunis Core – Limit erreicht');
+      expect(text).toContain('AmtsKI – Limit erreicht');
       expect(text).toContain(
-        'das Team Engineering hat das individuell festgelegte Limit vollständig erreicht und kann Ayunis Core aktuell nicht mehr mit allen Modellen nutzen.',
+        'das Team Engineering hat das individuell festgelegte Limit vollständig erreicht und kann AmtsKI aktuell nicht mehr mit allen Modellen nutzen.',
       );
       expect(text).toContain(
         'Passen Sie das Limit in den Einstellungen an, damit das Team wieder normal weiterarbeiten kann.',

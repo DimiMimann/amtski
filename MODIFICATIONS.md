@@ -41,6 +41,9 @@ summarizes them as required by section 5(a) of the license.
   registration pages point to mimann.net instead of ayunis.com.
 - **Configurable email sender** (`SMTP_FROM`): replaces the hardcoded Ayunis
   sender address, which a self-hosted SMTP account cannot send as.
+- **Unbranded emails**: invitation, password, confirmation and budget emails name
+  the product AmtsKI and drop the Ayunis logo, banner, team sign-off, support
+  address and footer.
 - **Container health check** probes `/api/health` instead of `/health`, which the
   SPA fallback always answered, and allows five minutes for the first boot.
 - **Easypanel deployment**: `compose.easypanel.yml`, an environment generator and a

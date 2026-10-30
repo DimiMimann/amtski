@@ -75,7 +75,7 @@ export class SendBudgetWarningEmailUseCase {
       scope: command.scope,
       targetName: command.targetName,
       threshold: command.threshold.toString(),
-      productName: 'Ayunis Core',
+      productName: 'AmtsKI',
       currentYear: new Date().getFullYear().toString(),
       logoUrl: `${assetBase}/logo.png`,
       teamUrl: `${assetBase}/team.png`,

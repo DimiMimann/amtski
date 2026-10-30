@@ -43,7 +43,7 @@ export class SendInvitationEmailUseCase {
       const receipt = await this.sendEmailUseCase.execute(
         new SendEmailCommand({
           to: command.invite.email,
-          subject: `Einladung zu ${org.name} – Ayunis Core`,
+          subject: `Einladung zu ${org.name} – AmtsKI`,
           html: content.html,
           text: content.text,
         }),
@@ -74,7 +74,7 @@ export class SendInvitationEmailUseCase {
       invitationUrl: command.url,
       userEmail: command.invite.email,
       invitingCompanyName: orgName,
-      productName: 'Ayunis Core',
+      productName: 'AmtsKI',
       currentYear: new Date().getFullYear().toString(),
       adminName: invitingUserName,
       logoUrl: `${assetBase}/logo.png`,

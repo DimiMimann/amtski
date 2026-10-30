@@ -1,15 +1,6 @@
 import type { MJMLParseResults } from 'mjml-core';
 import type { InvitationTemplateContent } from 'src/common/email-templates/domain/email-template.entity';
-import {
-  cta,
-  divider,
-  escapeText,
-  fineprint,
-  h1,
-  p,
-  renderLayout,
-  teamSignoff,
-} from './_layout';
+import { cta, escapeText, fineprint, h1, p, renderLayout } from './_layout';
 import { renderMjml } from './render-mjml';
 
 function preheader(template: InvitationTemplateContent): string {
@@ -34,11 +25,6 @@ Im nächsten Schritt ergänzen Sie Ihren Namen, vergeben ein Passwort und wähle
 Einladung annehmen: ${template.invitationUrl}
 
 Diese Einladung ist 7 Tage gültig. Wenn Sie diese E-Mail nicht erwartet haben, können Sie sie ignorieren.
-
-Diese E-Mail wurde an ${template.userEmail} gesendet.
-Bei Fragen: help@ayunis.com
-
-© ${template.currentYear} Ayunis / Locaboo GmbH. Alle Rechte vorbehalten.
 `;
 }
 
@@ -63,20 +49,13 @@ export function invitationHtml(
     fineprint(
       'Diese Einladung ist 7 Tage gültig. Wenn Sie diese E-Mail nicht erwartet haben, können Sie sie ignorieren.',
     ),
-    divider(),
-    teamSignoff(template.teamUrl),
   ].join('\n');
 
   return renderMjml(
     renderLayout({
       title: `Einladung zu ${template.invitingCompanyName} · ${template.productName}`,
       preheader: preheader(template),
-      logoUrl: template.logoUrl,
-      bannerUrl: template.bannerUrl,
-      bannerAlt: `${template.productName} – Die Plattform, auf der moderne Kommunen laufen.`,
       bodyMjml: body,
-      footerEmail: template.userEmail,
-      currentYear: template.currentYear,
     }),
   );
 }

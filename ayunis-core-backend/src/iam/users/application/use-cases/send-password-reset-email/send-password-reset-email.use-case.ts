@@ -56,7 +56,7 @@ export class SendPasswordResetEmailUseCase {
     await this.sendEmailUseCase.execute(
       new SendEmailCommand({
         to: command.userEmail,
-        subject: 'Passwort zurücksetzen für Ayunis Core',
+        subject: 'Passwort zurücksetzen für AmtsKI',
         html: emailContent.html,
         text: emailContent.text,
       }),
@@ -91,8 +91,8 @@ export class SendPasswordResetEmailUseCase {
       resetUrl: `${frontendBaseUrl}${passwordResetEndpoint}?token=${command.resetToken}`,
       forgotPasswordUrl: `${frontendBaseUrl}${forgotPasswordEndpoint}`,
       userEmail: command.userEmail,
-      companyName: 'Ayunis',
-      productName: 'Ayunis Core',
+      companyName: 'MiMann',
+      productName: 'AmtsKI',
       currentYear: new Date().getFullYear().toString(),
       userName: command.userName,
       logoUrl: `${assetBase}/logo.png`,

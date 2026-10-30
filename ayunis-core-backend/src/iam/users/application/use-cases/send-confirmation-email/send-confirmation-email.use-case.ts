@@ -51,7 +51,7 @@ export class SendConfirmationEmailUseCase {
       confirmationUrl: confirmationLink,
       userEmail: user.email,
       currentYear: new Date().getFullYear().toString(),
-      companyName: 'Ayunis',
+      companyName: 'MiMann',
     });
     const emailContent = await this.renderTemplateUseCase.execute(
       new RenderTemplateCommand(template),
@@ -59,7 +59,7 @@ export class SendConfirmationEmailUseCase {
     await this.sendEmailUseCase.execute(
       new SendEmailCommand({
         to: user.email,
-        subject: 'Ayunis Core – Bestätigen Sie Ihre E-Mail-Adresse',
+        subject: 'AmtsKI – Bestätigen Sie Ihre E-Mail-Adresse',
         html: emailContent.html,
         text: emailContent.text,
       }),

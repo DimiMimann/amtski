@@ -21,7 +21,6 @@ describe('email confirmation template', () => {
       });
 
       expect(rendered.html).not.toContain(includedMarker);
-      expect(rendered.html).toContain('&lt;/mj-text&gt;');
     } finally {
       rmSync(fixtureDirectory, { recursive: true, force: true });
     }

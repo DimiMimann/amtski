@@ -8,7 +8,6 @@ import {
   h1,
   p,
   renderLayout,
-  teamSignoff,
 } from './_layout';
 import { renderMjml } from './render-mjml';
 
@@ -20,18 +19,13 @@ export function passwordResetText(
 
 ${greeting}
 
-Sie haben angefragt, das Passwort für Ihr Ayunis-Core-Konto zurückzusetzen. Klicken Sie auf den Link unten, um ein neues Passwort festzulegen.
+Sie haben angefragt, das Passwort für Ihr ${template.productName}-Konto zurückzusetzen. Klicken Sie auf den Link unten, um ein neues Passwort festzulegen.
 
 ${template.resetUrl}
 
 Der Link ist 2 Stunden gültig und kann nur einmal verwendet werden. Wenn Sie das nicht angefordert haben, ignorieren Sie diese E-Mail – Ihr Konto bleibt sicher.
 
 Link abgelaufen? Neue E-Mail anfordern: ${template.forgotPasswordUrl}
-
-Diese E-Mail wurde an ${template.userEmail} gesendet.
-Bei Fragen: help@ayunis.com
-
-© ${template.currentYear} Ayunis / Locaboo GmbH. Alle Rechte vorbehalten.
 `;
 }
 
@@ -56,8 +50,6 @@ export function passwordResetHtml(
     fineprint(
       `Link abgelaufen? <a href="${template.forgotPasswordUrl}">Neue E-Mail anfordern</a>.`,
     ),
-    divider(),
-    teamSignoff(template.teamUrl),
   ].join('\n');
 
   return renderMjml(
@@ -65,10 +57,7 @@ export function passwordResetHtml(
       title: `Passwort zurücksetzen · ${template.productName}`,
       preheader:
         'Setzen Sie Ihr Passwort zurück. Der Link ist 2 Stunden gültig.',
-      logoUrl: template.logoUrl,
       bodyMjml: body,
-      footerEmail: template.userEmail,
-      currentYear: template.currentYear,
     }),
   );
 }

@@ -14,7 +14,7 @@ describe('MjmlHandler — budget warning', () => {
     scope: BudgetWarningScope.ORG,
     targetName: 'Stadt Musterhausen',
     threshold: '80',
-    productName: 'Ayunis Core',
+    productName: 'AmtsKI',
     currentYear: '2026',
     logoUrl: 'https://assets.example/logo.png',
     teamUrl: 'https://assets.example/team.png',
@@ -32,9 +32,7 @@ describe('MjmlHandler — budget warning', () => {
     expect(rendered.html).toContain('Budgetwarnung');
     expect(rendered.html).toContain('<strong>80 %</strong>');
     expect(rendered.html).toContain('Organisationsbudgets');
-    expect(rendered.html).toContain(
-      'Dies ist eine automatische Benachrichtigung.',
-    );
+    expect(rendered.html).not.toMatch(/ayunis|locaboo|help@/i);
     expect(rendered.html).toContain(baseContent.settingsUrl);
     expect(rendered.text).toContain(
       'mindestens 80 % Ihres Organisationsbudgets',

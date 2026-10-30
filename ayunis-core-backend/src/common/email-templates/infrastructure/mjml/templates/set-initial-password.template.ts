@@ -1,15 +1,6 @@
 import type { MJMLParseResults } from 'mjml-core';
 import type { SetInitialPasswordTemplateContent } from 'src/common/email-templates/domain/email-template.entity';
-import {
-  cta,
-  divider,
-  escapeText,
-  fineprint,
-  h1,
-  p,
-  renderLayout,
-  teamSignoff,
-} from './_layout';
+import { cta, escapeText, fineprint, h1, p, renderLayout } from './_layout';
 import { renderMjml } from './render-mjml';
 
 export function setInitialPasswordText(
@@ -23,11 +14,7 @@ Wir haben ein Konto für Sie bei ${template.productName} angelegt. Legen Sie nur
 
 Konto aktivieren: ${template.resetUrl}
 
-Der Link ist 7 Tage gültig. Sollten Sie das nicht erwartet haben, wenden Sie sich an help@ayunis.com.
-
-Diese E-Mail wurde an ${template.userEmail} gesendet.
-
-© ${template.currentYear} Ayunis / Locaboo GmbH. Alle Rechte vorbehalten.
+Der Link ist 7 Tage gültig. Sollten Sie das nicht erwartet haben, wenden Sie sich an Ihre Administration.
 `;
 }
 
@@ -44,22 +31,15 @@ export function setInitialPasswordHtml(
     ),
     cta('Konto aktivieren', template.resetUrl),
     fineprint(
-      'Der Link ist 7 Tage gültig. Sollten Sie das nicht erwartet haben, wenden Sie sich an <a href="mailto:help@ayunis.com">help@ayunis.com</a>.',
+      'Der Link ist 7 Tage gültig. Sollten Sie das nicht erwartet haben, wenden Sie sich an Ihre Administration.',
     ),
-    divider(),
-    teamSignoff(template.teamUrl),
   ].join('\n');
 
   return renderMjml(
     renderLayout({
       title: `Ihr Konto bei ${template.invitingCompanyName} · ${template.productName}`,
       preheader: `Wir haben ein Konto für Sie angelegt. Legen Sie jetzt Ihr Passwort fest.`,
-      logoUrl: template.logoUrl,
-      bannerUrl: template.bannerUrl,
-      bannerAlt: `${template.productName} – Die Plattform, auf der moderne Kommunen laufen.`,
       bodyMjml: body,
-      footerEmail: template.userEmail,
-      currentYear: template.currentYear,
     }),
   );
 }

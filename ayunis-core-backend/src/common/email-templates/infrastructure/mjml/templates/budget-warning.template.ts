@@ -5,15 +5,7 @@ import {
   buildBudgetWarningMessage,
   type BudgetWarningMessage,
 } from './budget-warning.messages';
-import {
-  cta,
-  divider,
-  escapeText,
-  h1,
-  p,
-  renderLayout,
-  teamSignoff,
-} from './_layout';
+import { cta, escapeText, h1, p, renderLayout } from './_layout';
 import { renderMjml } from './render-mjml';
 
 function normalizeInlineText(value: string): string {
@@ -66,11 +58,6 @@ export function budgetWarningText(
     ...message.paragraphs.flatMap((paragraph) => [paragraph.text, '']),
     `${message.settingsLinkLabel}: ${template.settingsUrl}`,
     '',
-    `Diese E-Mail wurde an ${normalizeInlineText(template.recipientEmail)} gesendet.`,
-    'Dies ist eine automatische Benachrichtigung.',
-    '',
-    `© ${template.currentYear} Ayunis / Locaboo GmbH. Alle Rechte vorbehalten.`,
-    '',
   ].join('\n');
 }
 
@@ -85,19 +72,13 @@ export function budgetWarningHtml(
     p(greet.html),
     ...message.paragraphs.map((paragraph) => p(paragraph.html)),
     cta(message.ctaLabel, template.settingsUrl),
-    divider(),
-    teamSignoff(template.teamUrl),
   ].join('\n');
 
   return renderMjml(
     renderLayout({
       title: `${message.headline} · ${normalizeInlineText(template.productName)}`,
       preheader: message.preheader,
-      logoUrl: template.logoUrl,
       bodyMjml,
-      footerEmail: template.recipientEmail,
-      currentYear: template.currentYear,
-      automatedNotice: true,
     }),
   );
 }
