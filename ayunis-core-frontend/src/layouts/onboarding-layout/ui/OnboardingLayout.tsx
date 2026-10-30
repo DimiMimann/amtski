@@ -72,14 +72,14 @@ export default function OnboardingLayout({
           </div>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
             <a
-              href="https://www.ayunis.com/impressum"
+              href="https://mimann.net/impressum/"
               target="_blank"
               rel="noopener noreferrer"
             >
               {t('onboardingLayout.imprint')}
             </a>
             <a
-              href="https://www.ayunis.com/datenschutz-core"
+              href="https://mimann.net/datenschutz/"
               target="_blank"
               rel="noopener noreferrer"
             >

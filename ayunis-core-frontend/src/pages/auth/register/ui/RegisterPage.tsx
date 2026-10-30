@@ -32,7 +32,7 @@ export function RegisterPage({
   const { form, onSubmit, isLoading } = useRegister();
   const { t } = useTranslation('auth');
   const agbHref = 'https://www.ayunis.com/agb-software-%c3%bcberlassung';
-  const privacyPolicyRef = 'www.ayunis.com/datenschutz-core';
+  const privacyPolicyRef = 'https://mimann.net/datenschutz/';
   const gtmContainerId = config.analytics.gtmContainerId ?? '';
   const usercentricsSettingsId = config.analytics.usercentricsSettingsId ?? '';
   const gtmEnabled =
