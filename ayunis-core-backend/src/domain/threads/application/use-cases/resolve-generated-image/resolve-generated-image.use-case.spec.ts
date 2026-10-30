@@ -3,7 +3,6 @@ import { ResolveGeneratedImageUseCase } from './resolve-generated-image.use-case
 import { ResolveGeneratedImageQuery } from './resolve-generated-image.query';
 import type { ThreadsRepository } from 'src/domain/threads/application/ports/threads.repository';
 import type { GeneratedImagesRepository } from 'src/domain/threads/application/ports/generated-images.repository';
-import type { GetPresignedUrlUseCase } from 'src/domain/storage/application/use-cases/get-presigned-url/get-presigned-url.use-case';
 import {
   ThreadNotFoundError,
   GeneratedImageNotFoundError,
@@ -14,7 +13,6 @@ describe('ResolveGeneratedImageUseCase', () => {
   let useCase: ResolveGeneratedImageUseCase;
   let threadsRepository: jest.Mocked<ThreadsRepository>;
   let generatedImagesRepository: jest.Mocked<GeneratedImagesRepository>;
-  let getPresignedUrlUseCase: jest.Mocked<GetPresignedUrlUseCase>;
 
   const mockUserId = '123e4567-e89b-12d3-a456-426614174000' as UUID;
   const mockThreadId = '123e4567-e89b-12d3-a456-426614174001' as UUID;
@@ -33,14 +31,9 @@ describe('ResolveGeneratedImageUseCase', () => {
       findByIdAndThreadId: jest.fn(),
     } as unknown as jest.Mocked<GeneratedImagesRepository>;
 
-    getPresignedUrlUseCase = {
-      execute: jest.fn(),
-    } as unknown as jest.Mocked<GetPresignedUrlUseCase>;
-
     useCase = new ResolveGeneratedImageUseCase(
       threadsRepository,
       generatedImagesRepository,
-      getPresignedUrlUseCase,
     );
   });
 
@@ -49,7 +42,7 @@ describe('ResolveGeneratedImageUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should return presigned URL when thread and image exist', async () => {
+    it('should return the backend content URL when thread and image exist', async () => {
       const query = new ResolveGeneratedImageQuery(
         mockThreadId,
         mockImageId,
@@ -75,24 +68,12 @@ describe('ResolveGeneratedImageUseCase', () => {
         mockImage,
       );
 
-      const expiresAt = new Date('2026-04-10T12:00:00Z');
-      getPresignedUrlUseCase.execute.mockResolvedValue({
-        url: 'https://storage.example.com/signed-url',
-        expiresAt,
-        storageUrl: { bucket: 'b', key: 'k' },
-        isExpired: () => false,
-      } as unknown as ReturnType<
-        typeof getPresignedUrlUseCase.execute
-      > extends Promise<infer R>
-        ? R
-        : never);
-
       const result = await useCase.execute(query);
 
-      expect(result).toEqual({
-        url: 'https://storage.example.com/signed-url',
-        expiresAt: expiresAt.toISOString(),
-      });
+      expect(result.url).toBe(
+        `/api/threads/${mockThreadId}/generated-images/${mockImageId}/content`,
+      );
+      expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now());
       expect(threadsRepository.findOne).toHaveBeenCalledWith(
         mockThreadId,
         mockUserId,

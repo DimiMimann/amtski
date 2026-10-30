@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ApplicationError } from 'src/common/errors/base.error';
-import { GetPresignedUrlUseCase } from 'src/domain/storage/application/use-cases/get-presigned-url/get-presigned-url.use-case';
-import { GetPresignedUrlCommand } from 'src/domain/storage/application/use-cases/get-presigned-url/get-presigned-url.command';
-import { contentTypeToExtension } from 'src/common/util/content-type.util';
 import { ThreadsRepository } from 'src/domain/threads/application/ports/threads.repository';
 import { GeneratedImagesRepository } from 'src/domain/threads/application/ports/generated-images.repository';
 import {
@@ -11,7 +8,8 @@ import {
 } from 'src/domain/threads/application/threads.errors';
 import { ResolveGeneratedImageQuery } from './resolve-generated-image.query';
 
-const PRESIGNED_URL_EXPIRY_SECONDS = 3600;
+// The URL itself never expires; this paces the client's re-resolution.
+const URL_EXPIRY_SECONDS = 3600;
 
 export interface ResolveGeneratedImageResult {
   url: string;
@@ -25,7 +23,6 @@ export class ResolveGeneratedImageUseCase {
   constructor(
     private readonly threadsRepository: ThreadsRepository,
     private readonly generatedImagesRepository: GeneratedImagesRepository,
-    private readonly getPresignedUrlUseCase: GetPresignedUrlUseCase,
   ) {}
 
   async execute(
@@ -54,25 +51,16 @@ export class ResolveGeneratedImageUseCase {
         throw new GeneratedImageNotFoundError(query.imageId);
       }
 
-      // Force a safe Content-Type and inline Content-Disposition on the
-      // pre-signed URL so the storage origin cannot serve the object with
-      // an active-content MIME type (e.g. image/svg+xml) that would
-      // otherwise render inline and create a stored-XSS primitive.
-      // `image.contentType` is constrained by the save-side allow-list.
-      const extension = contentTypeToExtension(image.contentType);
-      const presignedUrl = await this.getPresignedUrlUseCase.execute(
-        new GetPresignedUrlCommand(
-          image.storageKey,
-          PRESIGNED_URL_EXPIRY_SECONDS,
-          undefined,
-          image.contentType,
-          `inline; filename="${query.imageId}${extension}"`,
-        ),
-      );
-
+      // Served by the backend (DownloadGeneratedImageUseCase) rather than a
+      // presigned storage URL: the object storage is not reachable from
+      // browsers in self-hosted deployments. Same-origin, so the session
+      // cookie authorizes the request.
+      // ponytail: assumes the production '/api' prefix on the frontend origin.
       return {
-        url: presignedUrl.url,
-        expiresAt: presignedUrl.expiresAt.toISOString(),
+        url: `/api/threads/${query.threadId}/generated-images/${image.id}/content`,
+        expiresAt: new Date(
+          Date.now() + URL_EXPIRY_SECONDS * 1000,
+        ).toISOString(),
       };
     } catch (error) {
       if (error instanceof ApplicationError) {
